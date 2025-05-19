@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: WooCommerce Review Images
- * Description: Allows a single image upload with product reviews.
- * Version: 0.9.0
+ * Description: Allows a single image upload with product reviews and displays it in the admin.
+ * Version: 1.0.1
  * Author: Cascade AI & User
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -54,6 +54,12 @@ if ( ! class_exists( 'WC_Review_Images' ) ) {
             add_action( 'preprocess_comment', array( $this, 'handle_image_upload' ) );
             add_action( 'comment_post', array( $this, 'save_image_meta' ), 10, 2 );
             add_action( 'woocommerce_review_after_comment_text', array( $this, 'display_review_image' ) );
+
+            if ( is_admin() ) {
+                add_filter( 'manage_edit-comments_columns', array( $this, 'add_review_image_admin_column_header' ) );
+                add_action( 'manage_comments_custom_column', array( $this, 'display_review_image_admin_column_content' ), 10, 2 );
+                add_action( 'add_meta_boxes_comment', array( $this, 'add_review_image_meta_box' ) );
+            }
         }
 
         public function woocommerce_missing_notice() {
@@ -152,6 +158,72 @@ if ( ! class_exists( 'WC_Review_Images' ) ) {
                 }
             }
         }
+
+        // Admin columns for comments
+        public function add_review_image_admin_column_header( $columns ) {
+            $new_columns = array();
+            $insert_before = 'date'; 
+            if (!isset($columns[$insert_before])) {
+                 $insert_before = 'response';
+            }
+
+            foreach ( $columns as $key => $title ) {
+                if ( $key == $insert_before ) {
+                    $new_columns['review_image'] = __( 'Image', 'woocommerce-review-images' );
+                }
+                $new_columns[$key] = $title;
+            }
+            if ( !isset( $new_columns['review_image'] ) ) {
+                $new_columns['review_image'] = __( 'Image', 'woocommerce-review-images' );
+            }
+            return $new_columns;
+        }
+
+        public function display_review_image_admin_column_content( $column_name, $comment_id ) {
+            if ( 'review_image' === $column_name ) {
+                $image_id = get_comment_meta( $comment_id, self::META_KEY_IMAGE_ID, true );
+                if ( $image_id ) {
+                    $image_html = wp_get_attachment_image( $image_id, array(80, 80), true, array( 'style' => 'max-width:80px; height:auto; display:block; margin:auto;' ) );
+                    if ( $image_html ) {
+                        echo $image_html;
+                    } else {
+                        echo esc_html__( 'N/A', 'woocommerce-review-images' );
+                    }
+                } else {
+                    echo esc_html__( 'N/A', 'woocommerce-review-images' );
+                }
+            }
+        }
+
+        // Meta box for comment edit screen
+        public function add_review_image_meta_box() {
+            global $comment;
+            if ( $comment && 'product' === get_post_type( $comment->comment_post_ID ) ) {
+                add_meta_box(
+                    'wcri_review_image_meta_box',
+                    __( 'Review Image', 'woocommerce-review-images' ),
+                    array( $this, 'render_review_image_meta_box' ),
+                    'comment', 
+                    'normal',
+                    'high'
+                );
+            }
+        }
+
+        public function render_review_image_meta_box( $comment ) {
+            $image_id = get_comment_meta( $comment->comment_ID, self::META_KEY_IMAGE_ID, true );
+            if ( $image_id ) {
+                $image_html = wp_get_attachment_image( $image_id, 'medium', false, array( 'style' => 'max-width:100%; height:auto;' ) );
+                if ( $image_html ) {
+                    echo $image_html;
+                } else {
+                    echo '<p>' . esc_html__( 'Image data found, but the image could not be displayed. It might have been deleted from the media library.', 'woocommerce-review-images' ) . '</p>';
+                }
+            } else {
+                echo '<p>' . esc_html__( 'No image was uploaded with this review.', 'woocommerce-review-images' ) . '</p>';
+            }
+        }
+
     } 
 
     WC_Review_Images::get_instance();
