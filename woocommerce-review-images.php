@@ -1,16 +1,21 @@
 <?php
 /**
  * Plugin Name: WooCommerce Review Images
- * Description: Allows a single image upload with product reviews and displays it in the admin.
- * Version: 1.0.1
- * Author: Cascade AI & User
+ * Plugin URI: https://github.com/nytafar/woocommerce-review-images
+ * Description: Enhance WooCommerce product reviews by allowing customers to upload images with their reviews. Includes Gravatar optimization and admin management tools.
+ * Version: 1.0.2
+ * Author: Lasse Jellum
+ * Author URI: https://jellum.net
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain: woocommerce-review-images
  * Domain Path: /languages
+ * Requires at least: 5.6
+ * Requires PHP: 7.4
+ * WC requires at least: 5.0
+ * WC tested up to: 8.0
  *
- * WC requires at least: 3.0
- * WC tested up to: 6.0
+ * @package WooCommerce_Review_Images
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
