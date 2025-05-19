@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: WooCommerce Review Images (Simplified)
+ * Plugin Name: WooCommerce Review Images
  * Description: Allows a single image upload with product reviews.
- * Version: 0.8.0
+ * Version: 0.9.0
  * Author: Cascade AI & User
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
-if ( ! class_exists( 'WC_Review_Images_Simplified' ) ) {
-    class WC_Review_Images_Simplified {
+if ( ! class_exists( 'WC_Review_Images' ) ) {
+    class WC_Review_Images {
         protected static $instance = null;
         private static $uploaded_image_attachment_id = null;
 
@@ -69,7 +69,6 @@ if ( ! class_exists( 'WC_Review_Images_Simplified' ) ) {
             static $field_displayed = false;
             if ( $field_displayed ) return;
 
-            // Default label text, already prepared for translation.
             $default_label_text = __( 'Upload an image (optional, max 2MB, JPG, PNG, GIF)', 'woocommerce-review-images' );
             
             /**
@@ -83,9 +82,8 @@ if ( ! class_exists( 'WC_Review_Images_Simplified' ) ) {
             $label_text = apply_filters( 'wcri_upload_field_label_text', $default_label_text, get_post() );
 
             echo '<p class="comment-form-image-upload">';
-            // Output the filtered and escaped label text.
-            echo '<label for="review_image_upload">' . esc_html( $label_text ) . '</label>';
-            echo '<input type="file" id="review_image_upload" name="review_image_upload" accept="image/jpeg,image/png,image/gif" />';
+            echo '<label for="wcri_review_image_upload">' . esc_html( $label_text ) . '</label>';
+            echo '<input type="file" id="wcri_review_image_upload" name="wcri_review_image_upload" accept="image/jpeg,image/png,image/gif" />';
             echo '</p>';
             wp_nonce_field( 'wcri_image_upload_action', 'wcri_image_upload_nonce' );
             $field_displayed = true;
@@ -108,17 +106,15 @@ if ( ! class_exists( 'WC_Review_Images_Simplified' ) ) {
             if ( !isset($_POST['comment_post_ID']) || 'product' !== get_post_type( absint( $_POST['comment_post_ID'] ) ) ) return $commentdata;
             if ( !isset($_POST['wcri_image_upload_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['wcri_image_upload_nonce'])), 'wcri_image_upload_action')) return $commentdata;
 
-            if ( isset( $_FILES['review_image_upload'] ) && !empty( $_FILES['review_image_upload']['name'] ) && $_FILES['review_image_upload']['error'] == UPLOAD_ERR_OK ) {
+            if ( isset( $_FILES['wcri_review_image_upload'] ) && !empty( $_FILES['wcri_review_image_upload']['name'] ) && $_FILES['wcri_review_image_upload']['error'] == UPLOAD_ERR_OK ) {
                 
-                $file = $_FILES['review_image_upload'];
+                $file = $_FILES['wcri_review_image_upload'];
 
-                // Validate file size
                 if ( $file['size'] > self::MAX_FILE_SIZE_BYTES ) {
                     error_log( 'WCRI Error: Uploaded file exceeds max size limit. File: ' . sanitize_file_name($file['name']) );
                     return $commentdata; 
                 }
 
-                // Validate file type
                 $file_type = wp_check_filetype( $file['name'], self::ALLOWED_MIME_TYPES );
                 if ( ! $file_type['ext'] || ! $file_type['type'] ) {
                     error_log( 'WCRI Error: Uploaded file type is not allowed. File: ' . sanitize_file_name($file['name']) . ' Detected type: ' . sanitize_mime_type($file['type']) );
@@ -129,7 +125,7 @@ if ( ! class_exists( 'WC_Review_Images_Simplified' ) ) {
                 require_once( ABSPATH . 'wp-admin/includes/file.php' );
                 require_once( ABSPATH . 'wp-admin/includes/media.php' );
                 
-                $attachment_id = media_handle_upload( 'review_image_upload', absint( $_POST['comment_post_ID'] ) );
+                $attachment_id = media_handle_upload( 'wcri_review_image_upload', absint( $_POST['comment_post_ID'] ) );
 
                 if ( is_wp_error( $attachment_id ) ) {
                     error_log( 'WCRI Error: media_handle_upload failed. Message: ' . $attachment_id->get_error_message() . ' File: ' . sanitize_file_name($file['name']) );
@@ -158,5 +154,5 @@ if ( ! class_exists( 'WC_Review_Images_Simplified' ) ) {
         }
     } 
 
-    WC_Review_Images_Simplified::get_instance();
+    WC_Review_Images::get_instance();
 }
