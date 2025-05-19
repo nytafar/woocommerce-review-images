@@ -1,0 +1,1033 @@
+<?php
+/**
+ * Plugin Name: WooCommerce Review Images
+ * Description: Allows users to upload an image with their product review and displays it on the frontend.
+ * Version: 1.0.0
+ * Author: Your Name
+ * Author URI: Your Website
+ * License: GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain: woocommerce-review-images
+ * Domain Path: /languages
+ *
+ * WC requires at least: 3.0
+ * WC tested up to: (latest version you know)
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
+
+if ( ! class_exists( 'WC_Review_Images' ) ) {
+
+    class WC_Review_Images {
+
+        /**
+         * Singleton instance
+         *
+         * @var WC_Review_Images
+         */
+        private static $instance = null;
+
+        /**
+         * Temporary storage for attachment IDs between preprocess_comment and comment_post
+         * 
+         * @var array
+         */
+        private static $uploaded_image_attachment_ids = array();
+
+        /**
+         * Initialize the plugin.
+         */
+        private function __construct() {
+            // Define constants
+            define( 'WCRI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+            define( 'WCRI_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+            // Add hooks
+            add_action( 'plugins_loaded', array( $this, 'init' ) );
+        }
+
+        /**
+         * Return an instance of this class.
+         *
+         * @return object A single instance of this class.
+         */
+        public static function get_instance() {
+            if ( null === self::$instance ) {
+                self::$instance = new self();
+            }
+            return self::$instance;
+        }
+
+        /**
+         * Initialize plugin functionality.
+         */
+        public function init() {
+            // Check if WooCommerce is active
+            if ( ! class_exists( 'WooCommerce' ) ) {
+                add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+                return;
+            }
+            
+            // Register AJAX handlers
+            add_action( 'wp_ajax_wcri_process_upload', array( $this, 'process_ajax_upload' ) );        
+            add_action( 'wp_ajax_nopriv_wcri_process_upload', array( $this, 'process_ajax_upload' ) );
+            
+            // CRITICAL FIX: We now use an iframe-based approach that guarantees enctype is set correctly
+            // but we'll keep the output buffering as a fallback
+            add_action( 'comment_form_before', array( $this, 'start_comment_form_buffer' ), 1 );
+            add_action( 'comment_form_after', array( $this, 'end_comment_form_buffer' ), 99 );
+            
+            // These older techniques are kept as fallbacks too
+            add_filter( 'comment_form_defaults', array( $this, 'comment_form_defaults' ) );
+            add_action( 'wp_footer', array( $this, 'fix_form_globally' ) );
+            
+            // Add our fields before the comment form submit button
+            add_action( 'comment_form_before_submit', array( $this, 'add_review_image_upload_field' ) );
+            
+            // Also try other hooks to ensure it works on various themes
+            add_action( 'comment_form_logged_in_after', array( $this, 'add_review_image_upload_field' ) );
+            add_action( 'comment_form_after_fields', array( $this, 'add_review_image_upload_field' ) );
+            
+            // Handle image upload and save meta
+            add_filter( 'preprocess_comment', array( $this, 'handle_review_image_upload' ) );
+            add_action( 'comment_post', array( $this, 'save_review_image_meta' ), 10, 2 );
+
+            // Display image in review (frontend)
+            add_action( 'woocommerce_review_after_comment_text', array( $this, 'display_review_image' ) );
+            
+            // Display images in admin panel
+            add_filter( 'comment_text', array( $this, 'display_admin_review_image' ), 10, 2 );
+            add_action( 'add_meta_boxes_comment', array( $this, 'add_comment_images_metabox' ) );
+            
+            // Enqueue scripts and styles
+            add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+            add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+        }
+
+        /**
+         * Display a notice if WooCommerce is not active.
+         */
+        public function woocommerce_missing_notice() {
+            ?>
+            <div class="notice notice-error">
+                <p><?php esc_html_e( 'WooCommerce Review Images requires WooCommerce to be installed and active.', 'woocommerce-review-images' ); ?></p>
+            </div>
+            <?php
+        }
+        
+        /**
+         * Starts output buffering before the comment form is rendered.
+         */
+        public function start_comment_form_buffer() {
+            global $post;
+            // Only buffer on single product pages where comments are open
+            if ( is_product() && $post && comments_open( $post->ID ) ) {
+                error_log('WC Review Images: Starting output buffer for comment form');
+                ob_start( array( $this, 'modify_form_output_for_enctype' ) );
+            }
+        }
+
+        /**
+         * Callback for ob_start to modify the form's HTML.
+         *
+         * @param string $buffer The HTML buffer.
+         * @return string Modified HTML buffer.
+         */
+        public function modify_form_output_for_enctype( $buffer ) {
+            // Check if this buffer actually contains the comment form
+            $form_identifier_pattern = '/<form\s+(.*?)id=(\'|")commentform(\'|")(.*?)>/is';
+            if (preg_match($form_identifier_pattern, $buffer)) {
+                $modified = preg_replace(
+                    $form_identifier_pattern,
+                    '<form $1id=$2commentform$3$4 enctype="multipart/form-data">',
+                    $buffer,
+                    1 // Replace only the first occurrence
+                );
+                
+                if ($modified !== $buffer) {
+                    error_log('WC Review Images: Successfully modified form enctype in output buffer');
+                    return $modified;
+                } else {
+                    error_log('WC Review Images: Failed to add enctype attribute via regex');
+                }
+            } else {
+                error_log('WC Review Images: Comment form not found in buffer');
+            }
+            
+            return $buffer;
+        }
+
+        /**
+         * Ends output buffering after the comment form.
+         */
+        public function end_comment_form_buffer() {
+            global $post;
+            if ( is_product() && $post && comments_open( $post->ID ) ) {
+                // Check if our specific buffer is active before flushing
+                if ( ob_get_level() > 0 ) {
+                    $status = ob_get_status( true );
+                    $is_our_buffer = false;
+                    // Check if our callback is in the output_handler stack
+                    foreach ( $status as $s ) {
+                        if ( isset( $s['name'] ) && is_array($s['name']) && $s['name'][0] === $this && $s['name'][1] === 'modify_form_output_for_enctype' ) {
+                            $is_our_buffer = true;
+                            break;
+                        }
+                    }
+                    if ( $is_our_buffer ) {
+                        error_log('WC Review Images: Flushing our output buffer');
+                        ob_end_flush();
+                    }
+                }
+            }
+        }
+
+        /**
+         * Filter comment form defaults to add multipart/form-data enctype
+         * This is a critical function for ensuring file uploads work correctly
+         */
+        public function comment_form_defaults( $defaults ) {
+            if ( is_product() && is_singular( 'product' ) ) {
+                // 1. Add enctype to form tag attributes by direct attribute injection
+                if ( isset( $defaults['id_form'] ) ) {
+                    $defaults['id_form'] = $defaults['id_form'] . ' enctype="multipart/form-data"';
+                }
+                
+                // 2. Modify the form tag directly in the comment_form_top action
+                add_action( 'comment_form_top', function() {
+                    echo "<script type='text/javascript'>document.getElementById('commentform').setAttribute('enctype', 'multipart/form-data');</script>";
+                }, 1 );
+                
+                // 3. Force the enctype by completely overriding the form_tag
+                if ( isset( $defaults['form_tag'] ) ) {
+                    // Extract any existing attributes except method and action
+                    $form_attributes = '';
+                    if ( preg_match( '/<form([^>]+)>/', $defaults['form_tag'], $matches ) ) {
+                        $attributes = $matches[1];
+                        // Keep any attributes except method and action which we'll set explicitly
+                        $attributes = preg_replace( '/\s(method|enctype|action)=["\'][^"\']*["\']/','', $attributes );
+                        $form_attributes = $attributes;
+                    }
+                    
+                    // Rebuild the form tag with explicit enctype
+                    $defaults['form_tag'] = sprintf(
+                        '<form id="commentform" name="commentform" method="post" action="%s" enctype="multipart/form-data"%s>',
+                        esc_url( site_url( '/wp-comments-post.php' ) ),
+                        $form_attributes
+                    );
+                    
+                    // Log that we've modified the form tag
+                    error_log( 'WC Review Images: Modified form_tag to force enctype: ' . $defaults['form_tag'] );
+                }
+            }
+            return $defaults;
+        }
+        
+        /**
+         * Add the review image upload field to the form with iframe fallback for reliable uploads
+         */
+        public function add_review_image_upload_field() {
+            // Only show on single product pages and only on the actual form (not on reviews)
+            if ( ! is_product() || ! is_singular( 'product' ) ) {
+                return;
+            }
+            
+            // Don't show if comments are closed
+            if ( ! comments_open() ) {
+                return;
+            }
+            
+            // Create a unique ID for our form
+            $upload_form_id = 'wcri_upload_form_' . uniqid();
+            $upload_iframe_id = 'wcri_upload_iframe_' . uniqid();
+            $upload_field_id = 'wcri_review_image_' . uniqid();
+            
+            // Add nonce for security
+            wp_nonce_field( 'wcri_review_image_upload', 'wcri_review_image_nonce' );
+            
+            // Add our upload field container
+            echo '<div class="comment-form-image-upload">';
+            echo '<h4>' . esc_html__( 'Upload Review Images', 'woocommerce-review-images' ) . '</h4>';
+            
+            // Hidden iframe to handle file uploads separately from the main form
+            echo '<iframe id="' . esc_attr($upload_iframe_id) . '" name="' . esc_attr($upload_iframe_id) . '" style="display:none;"></iframe>';
+            
+            // Create a separate form just for file uploads
+            echo '<form id="' . esc_attr($upload_form_id) . '" action="' . admin_url('admin-ajax.php') . '" method="post" enctype="multipart/form-data" target="' . esc_attr($upload_iframe_id) . '">';
+            echo '<input type="hidden" name="action" value="wcri_process_upload">';
+            echo '<label for="' . esc_attr($upload_field_id) . '">' . esc_html__( 'Add images to your review (optional)', 'woocommerce-review-images' ) . '</label>';
+            echo '<input type="file" name="wcri_review_image[]" id="' . esc_attr($upload_field_id) . '" multiple accept="image/*" style="display: block; margin: 10px 0;" />';
+            echo '<input type="hidden" name="product_id" value="' . get_the_ID() . '">';
+            echo wp_nonce_field( 'wcri_ajax_upload', 'wcri_ajax_upload_nonce', true, false );
+            echo '</form>';
+            
+            // Add a hidden field to the main comment form to store the uploaded image IDs
+            echo '<input type="hidden" name="wcri_uploaded_image_ids" id="wcri_uploaded_image_ids" value="">';
+            
+            // Preview container
+            echo '<div id="wcri_image_preview_container" style="margin-top: 10px;"></div>';
+            echo '</div>';
+            
+            // Debug info
+            echo '<!-- WC Review Images: Using AJAX approach for reliable uploads -->';
+            
+            // Add JavaScript to handle the upload and preview
+            ?>
+            <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                var uploadForm = $('#<?php echo esc_js($upload_form_id); ?>');
+                var uploadField = $('#<?php echo esc_js($upload_field_id); ?>');
+                var uploadedImagesField = $('#wcri_uploaded_image_ids');
+                var previewContainer = $('#wcri_image_preview_container');
+                var uploadedImageIds = [];
+                
+                // Make sure the main form has the proper attribute for debugging
+                $('#commentform').attr('enctype', 'multipart/form-data');
+                console.log('WC Review Images: Main form enctype is now: ' + $('#commentform').attr('enctype'));
+                
+                // Handle file selection
+                uploadField.on('change', function() {
+                    if (this.files && this.files.length > 0) {
+                        // First show previews
+                        previewImages(this.files);
+                        
+                        // Then try to upload them via our separate form
+                        uploadForm.submit();
+                        console.log('WC Review Images: Attempting upload via iframe');
+                    }
+                });
+                
+                // Function to preview selected images
+                function previewImages(files) {
+                    previewContainer.html('');
+                    previewContainer.append('<p><?php echo esc_html__( 'Selected images:', 'woocommerce-review-images' ); ?></p>');
+                    
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        var reader = new FileReader();
+                        
+                        reader.onload = (function(file) {
+                            return function(e) {
+                                previewContainer.append(
+                                    '<div class="wcri-preview-item" style="display: inline-block; margin-right: 10px; margin-bottom: 10px;">' +
+                                    '<img src="' + e.target.result + '" style="max-width: 100px; max-height: 100px; display: block; margin-bottom: 5px;" />' +
+                                    '<span style="font-size: 12px;">' + file.name + '</span>' +
+                                    '</div>'
+                                );
+                            };
+                        })(file);
+                        
+                        reader.readAsDataURL(file);
+                    }
+                    
+                    // Add uploading message
+                    previewContainer.append('<div class="wcri-upload-status">Uploading images...</div>');
+                }
+                
+                // Listen for messages from the iframe
+                window.addEventListener('message', function(event) {
+                    try {
+                        var data = JSON.parse(event.data);
+                        if (data.hasOwnProperty('wcri_upload_response')) {
+                            console.log('WC Review Images: Received upload response', data);
+                            
+                            if (data.success && data.image_ids) {
+                                // Store the uploaded image IDs
+                                uploadedImageIds = uploadedImageIds.concat(data.image_ids);
+                                uploadedImagesField.val(uploadedImageIds.join(','));
+                                
+                                // Update status message
+                                $('.wcri-upload-status').html('Images uploaded successfully!');
+                            } else {
+                                // Show error
+                                $('.wcri-upload-status').html('Error uploading images: ' + (data.error || 'Unknown error'));
+                            }
+                        }
+                    } catch (e) {
+                        console.error('WC Review Images: Error parsing iframe message', e);
+                    }
+                });
+            });
+            </script>
+            <?php
+        }
+        
+        /**
+         * AJAX handler for processing image uploads
+         */
+        public function process_ajax_upload() {
+            // Set headers to prevent caching
+            header('Content-Type: text/html; charset=' . get_option('blog_charset'));
+            header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
+            header('Cache-Control: no-cache, must-revalidate, max-age=0');
+            
+            // Verify nonce
+            if (!isset($_POST['wcri_ajax_upload_nonce']) || !wp_verify_nonce($_POST['wcri_ajax_upload_nonce'], 'wcri_ajax_upload')) {
+                $this->send_iframe_response(array(
+                    'success' => false,
+                    'error' => 'Security verification failed'
+                ));
+                exit;
+            }
+            
+            // Check for product ID
+            $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
+            if (empty($product_id)) {
+                $this->send_iframe_response(array(
+                    'success' => false,
+                    'error' => 'Missing product ID'
+                ));
+                exit;
+            }
+            
+            // Check for files
+            error_log('WC Review Images AJAX: Processing upload request. FILES data: ' . print_r($_FILES, true));
+            
+            if (!isset($_FILES['wcri_review_image']) || empty($_FILES['wcri_review_image']['name'][0])) {
+                $this->send_iframe_response(array(
+                    'success' => false,
+                    'error' => 'No files were uploaded'
+                ));
+                exit;
+            }
+            
+            // Process the uploads
+            $uploaded_ids = array();
+            $files = $_FILES['wcri_review_image'];
+            
+            // Reorganize files array if multiple files
+            if (is_array($files['name'])) {
+                $file_count = count($files['name']);
+                for ($i = 0; $i < $file_count; $i++) {
+                    if (!empty($files['name'][$i])) {
+                        $file = array(
+                            'name' => $files['name'][$i],
+                            'type' => $files['type'][$i],
+                            'tmp_name' => $files['tmp_name'][$i],
+                            'error' => $files['error'][$i],
+                            'size' => $files['size'][$i]
+                        );
+                        
+                        $upload_result = $this->handle_single_upload($file, $product_id);
+                        if ($upload_result && !is_wp_error($upload_result)) {
+                            $uploaded_ids[] = $upload_result;
+                        }
+                    }
+                }
+            } else {
+                // Single file upload
+                $upload_result = $this->handle_single_upload($files, $product_id);
+                if ($upload_result && !is_wp_error($upload_result)) {
+                    $uploaded_ids[] = $upload_result;
+                }
+            }
+            
+            // Return the response with attachment IDs
+            $this->send_iframe_response(array(
+                'success' => !empty($uploaded_ids),
+                'image_ids' => $uploaded_ids,
+                'count' => count($uploaded_ids)
+            ));
+            exit;
+        }
+        
+        /**
+         * Handle a single file upload
+         * 
+         * @param array $file File data
+         * @param int $product_id Associated product ID
+         * @return int|WP_Error Attachment ID on success, WP_Error on failure
+         */
+        private function handle_single_upload($file, $product_id) {
+            // Check for errors
+            if ($file['error'] > 0) {
+                error_log('WC Review Images AJAX: File upload error code ' . $file['error']);
+                return new WP_Error('upload_error', 'Upload failed with error code ' . $file['error']);
+            }
+            
+            // Check file size (limit to 2MB)
+            $max_size = 2 * 1024 * 1024; // 2MB
+            if ($file['size'] > $max_size) {
+                error_log('WC Review Images AJAX: File too large (' . size_format($file['size']) . ')');
+                return new WP_Error('file_too_large', 'File is too large. Maximum size is ' . size_format($max_size));
+            }
+            
+            // Check file type
+            if (!in_array($file['type'], array('image/jpeg', 'image/png', 'image/gif'))) {
+                error_log('WC Review Images AJAX: Invalid file type (' . $file['type'] . ')');
+                return new WP_Error('invalid_type', 'Invalid file type. Only JPEG, PNG and GIF are allowed.');
+            }
+            
+            // Upload the file
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+            
+            $upload_overrides = array('test_form' => false);
+            $uploaded_file = wp_handle_upload($file, $upload_overrides);
+            
+            if (isset($uploaded_file['error'])) {
+                error_log('WC Review Images AJAX: Upload failed: ' . $uploaded_file['error']);
+                return new WP_Error('upload_error', $uploaded_file['error']);
+            }
+            
+            // Create attachment
+            $attachment = array(
+                'guid' => $uploaded_file['url'],
+                'post_mime_type' => $uploaded_file['type'],
+                'post_title' => preg_replace('/\.[^.]+$/', '', basename($file['name'])),
+                'post_content' => '',
+                'post_status' => 'inherit'
+            );
+            
+            $attachment_id = wp_insert_attachment($attachment, $uploaded_file['file'], $product_id);
+            
+            if (is_wp_error($attachment_id)) {
+                error_log('WC Review Images AJAX: Failed to create attachment: ' . $attachment_id->get_error_message());
+                return $attachment_id;
+            }
+            
+            // Generate metadata
+            $attachment_data = wp_generate_attachment_metadata($attachment_id, $uploaded_file['file']);
+            wp_update_attachment_metadata($attachment_id, $attachment_data);
+            
+            error_log('WC Review Images AJAX: Successfully uploaded file, attachment ID: ' . $attachment_id);
+            return $attachment_id;
+        }
+        
+        /**
+         * Send JSON response via iframe
+         * 
+         * @param array $response Response data
+         */
+        private function send_iframe_response($response) {
+            echo '<html><body><script>window.parent.postMessage(JSON.stringify(' . 
+                 json_encode(array('wcri_upload_response' => $response)) . 
+                 '), "*");</script></body></html>';
+        }
+        
+        /**
+         * Aggressive fix for the form enctype issue - adds the script to the footer
+         */
+        public function fix_form_globally() {
+            if ( is_product() && is_singular( 'product' ) && comments_open() ) {
+                // Output direct script in the footer to ensure it runs
+                ?>
+                <style>
+                    /* Make the upload field more obvious */
+                    .comment-form-image-upload {
+                        margin: 20px 0;
+                        padding: 15px;
+                        background: #f9f9f9;
+                        border: 1px solid #e4e4e4;
+                        border-radius: 4px;
+                    }
+                    .comment-form-image-upload h4 {
+                        margin-top: 0;
+                        margin-bottom: 10px;
+                    }
+                </style>
+                <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    console.log('WC Review Images: Global form fix running');
+                    
+                    // Check the form frequently until we find it
+                    var formCheckInterval = setInterval(function() {
+                        var $form = $('#commentform');
+                        if ($form.length > 0) {
+                            console.log('WC Review Images: Found the form, setting enctype');
+                            
+                            // Set the enctype attribute
+                            $form.attr('enctype', 'multipart/form-data');
+                            
+                            // Replace form with itself to ensure attributes stick
+                            var formHtml = $form[0].outerHTML;
+                            formHtml = formHtml.replace('<form', '<form enctype="multipart/form-data"');
+                            $form.replaceWith(formHtml);
+                            
+                            // Try direct DOM manipulation as well
+                            document.getElementById('commentform').setAttribute('enctype', 'multipart/form-data');
+                            
+                            // Check if it worked
+                            setTimeout(function() {
+                                var formEnctype = $('#commentform').attr('enctype');
+                                console.log('WC Review Images: Form enctype is now: ' + formEnctype);
+                            }, 500);
+                            
+                            // Clear the interval
+                            clearInterval(formCheckInterval);
+                        }
+                    }, 500);
+                    
+                    // Create a hidden test form to check if file uploads work
+                    $('body').append('<div id="wcri_test_form_container" style="display:none;">' +
+                        '<form id="wcri_test_form" method="post" enctype="multipart/form-data">' +
+                        '<input type="file" name="wcri_test_file" id="wcri_test_file">' +
+                        '</form>' +
+                    '</div>');
+                    
+                    // Check if the test form has the right enctype
+                    var testEnctype = $('#wcri_test_form').attr('enctype');
+                    console.log('WC Review Images: Test form enctype: ' + testEnctype);
+                    
+                    // Add debug info
+                    $('#wcri_review_image').after('<p class="wcri-debug-info" style="font-size: 11px; color: #999;">Debug: Can upload files = ' + 
+                        (typeof FileReader !== 'undefined' ? 'Yes' : 'No') + '</p>');
+                });
+                </script>
+                <?php
+            }
+        }
+
+        /**
+         * Add JavaScript to set form enctype for file uploads - kept for backwards compatibility
+         */
+        public function add_form_enctype_script() {
+            // This function is now handled by fix_form_globally
+            return;
+        }
+
+
+        /**
+         * Handle the image upload.
+         *
+         * @param array $commentdata Comment data.
+         * @return array Comment data, possibly with an error if upload failed.
+         */
+        public function handle_review_image_upload( $commentdata ) {
+            error_log('WC Review Images: Processing comment upload');            
+        
+            // Debug POST and FILES data
+            error_log('WC Review Images: POST data keys: ' . print_r(array_keys($_POST), true));
+            error_log('WC Review Images: FILES data keys: ' . print_r(array_keys($_FILES), true));
+        
+            // Only process product comments
+            if ( ! empty( $commentdata['comment_post_ID'] ) && 'product' === get_post_type( $commentdata['comment_post_ID'] ) ) {
+                error_log('WC Review Images: This is a product review');
+            
+                // Check nonce
+                if ( ! isset( $_POST['wcri_review_image_nonce'] ) || ! wp_verify_nonce( $_POST['wcri_review_image_nonce'], 'wcri_review_image_upload' ) ) {
+                    error_log('WC Review Images: Nonce verification failed or missing');
+                    return $commentdata;
+                }
+            
+                // Initialize the array for uploaded image attachments
+                self::$uploaded_image_attachment_ids = array();
+            
+                // Check if we have images uploaded via AJAX
+                if ( isset( $_POST['wcri_uploaded_image_ids'] ) && ! empty( $_POST['wcri_uploaded_image_ids'] ) ) {
+                    $uploaded_ids = explode( ',', sanitize_text_field( $_POST['wcri_uploaded_image_ids'] ) );
+                    error_log('WC Review Images: Found pre-uploaded image IDs: ' . print_r($uploaded_ids, true));
+                
+                    // Validate each ID to make sure it's a valid attachment
+                    foreach ( $uploaded_ids as $id ) {
+                        $id = intval( $id );
+                        if ( $id > 0 && wp_attachment_is_image( $id ) ) {
+                            self::$uploaded_image_attachment_ids[] = $id;
+                        }
+                    }
+                
+                    error_log('WC Review Images: Using ' . count(self::$uploaded_image_attachment_ids) . ' pre-uploaded images');
+                    return $commentdata;
+                }
+            
+                // If no AJAX uploads, try direct uploads
+                // Debug the raw FILES array
+                error_log('WC Review Images: Raw $_FILES array: ' . print_r($_FILES, true));
+            
+                // Process file uploads via traditional method
+                if ( isset( $_FILES['wcri_review_image'] ) && is_array( $_FILES['wcri_review_image']['name'] ) ) {
+                    error_log('WC Review Images: Processing direct file uploads');
+                
+                    require_once( ABSPATH . 'wp-admin/includes/image.php' );
+                    require_once( ABSPATH . 'wp-admin/includes/file.php' );
+                    require_once( ABSPATH . 'wp-admin/includes/media.php' );
+                
+                    // Multiple file upload, process each file
+                    $file_count = count( $_FILES['wcri_review_image']['name'] );
+                
+                    for ( $i = 0; $i < $file_count; $i++ ) {
+                        // Check if there's a file to upload
+                        if ( empty( $_FILES['wcri_review_image']['name'][ $i ] ) ) {
+                            continue;
+                        }
+                    
+                        // Setup the array for this file
+                        $file = array(
+                            'name'     => $_FILES['wcri_review_image']['name'][ $i ],
+                            'type'     => $_FILES['wcri_review_image']['type'][ $i ],
+                            'tmp_name' => $_FILES['wcri_review_image']['tmp_name'][ $i ],
+                            'error'    => $_FILES['wcri_review_image']['error'][ $i ],
+                            'size'     => $_FILES['wcri_review_image']['size'][ $i ]
+                        );
+                    
+                        // Skip empty files
+                        if ( empty( $file['name'] ) || $file['size'] <= 0 ) {
+                            continue;
+                        }
+                    
+                        // Validate file type
+                        $allowed_file_types = array( 'image/jpeg', 'image/png', 'image/gif' );
+                        if ( ! in_array( $file['type'], $allowed_file_types ) ) {
+                            continue; // Skip files that aren't images
+                        }
+                    
+                        // Upload the file
+                        $upload = wp_handle_upload(
+                            $file,
+                            array(
+                                'test_form' => false,
+                                'mimes'     => array(
+                                    'jpg|jpeg' => 'image/jpeg',
+                                    'png'      => 'image/png',
+                                    'gif'      => 'image/gif',
+                                )
+                            )
+                        );
+                    
+                        // If successful, create an attachment
+                        if ( ! isset( $upload['error'] ) && isset( $upload['file'] ) ) {
+                            $attachment = array(
+                                'post_mime_type' => $upload['type'],
+                                'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $file['name'] ) ),
+                                'post_content'   => '',
+                                'post_status'    => 'inherit',
+                                'guid'          => $upload['url'],
+                            );
+                        
+                            // Insert attachment
+                            $attachment_id = wp_insert_attachment( $attachment, $upload['file'], $commentdata['comment_post_ID'] );
+                        
+                            // Generate metadata
+                            if ( ! is_wp_error( $attachment_id ) ) {
+                                $attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+                                wp_update_attachment_metadata( $attachment_id, $attachment_data );
+                            
+                                // Add to our collection
+                                self::$uploaded_image_attachment_ids[] = $attachment_id;
+                                error_log('WC Review Images: File uploaded successfully, attachment ID: ' . $attachment_id);
+                            } else {
+                                error_log('WC Review Images: Upload failed: ' . $attachment_id->get_error_message());
+                            }
+                        }
+                    }
+                } else {
+                    error_log('WC Review Images: No direct file uploads found');
+                }
+            } else {
+                error_log('WC Review Images: Not a product review');
+            }
+            return $commentdata;
+        }
+        
+        /**
+         * Save the review image attachment IDs as comment meta.
+         * 
+         * @param int   $comment_id The ID of the comment being posted.
+         * @param mixed $comment_approved Approval status.
+         */
+        public function save_review_image_meta( $comment_id, $comment_approved ) {
+            error_log('WC Review Images: Saving comment meta for comment ID ' . $comment_id);
+            
+            // First check for AJAX-uploaded images via the hidden field
+            $ajax_image_ids = array();
+            if ( isset( $_POST['wcri_uploaded_image_ids'] ) && ! empty( $_POST['wcri_uploaded_image_ids'] ) ) {
+                $uploaded_ids = explode( ',', sanitize_text_field( $_POST['wcri_uploaded_image_ids'] ) );
+                error_log('WC Review Images: Found AJAX-uploaded images in hidden field: ' . print_r($uploaded_ids, true));
+                
+                // Validate each ID to make sure it's a valid attachment
+                foreach ( $uploaded_ids as $id ) {
+                    $id = intval( $id );
+                    if ( $id > 0 && wp_attachment_is_image( $id ) ) {
+                        $ajax_image_ids[] = $id;
+                    }
+                }
+            }
+            
+            // Combine direct uploads with AJAX uploads
+            $all_image_ids = array_merge(self::$uploaded_image_attachment_ids, $ajax_image_ids);
+            
+            // Check if we have attachment IDs to save
+            if ( ! empty( $all_image_ids ) ) {
+                error_log('WC Review Images: Saving ' . count($all_image_ids) . ' image IDs: ' . implode(', ', $all_image_ids));
+                
+                // Save the images array as comment meta
+                update_comment_meta( $comment_id, '_review_images', $all_image_ids );
+                
+                // Update attachment post parent if needed
+                foreach ( $all_image_ids as $attachment_id ) {
+                    $attachment = get_post( $attachment_id );
+                    if ( $attachment ) {
+                        // Set the comment ID as post excerpt for future reference
+                        wp_update_post( array(
+                            'ID'           => $attachment_id,
+                            'post_excerpt' => 'comment_id_' . $comment_id,
+                        ) );
+                    }
+                }
+                
+                // Reset the static variable
+                self::$uploaded_image_attachment_ids = array();
+            } else {
+                error_log('WC Review Images: No images to save');
+            }
+            
+            // Check for legacy single image upload (backward compatibility)
+            if ( isset( $_POST['review_image_id'] ) && ! empty( $_POST['review_image_id'] ) ) {
+                $legacy_image_id = intval( $_POST['review_image_id'] );
+                
+                if ( $legacy_image_id > 0 ) {
+                    update_comment_meta( $comment_id, 'review_image_id', $legacy_image_id );
+                }
+            }
+        }
+
+        /**
+         * Display the uploaded images in the review.
+         *
+         * @param object $comment The comment object.
+         */
+        public function display_review_image( $comment ) {
+            // Make sure we have a valid comment object
+            if ( ! isset( $comment->comment_ID ) ) {
+                error_log('WC Review Images: Invalid comment object in display function');
+                return;
+            }
+            
+            // Debug information
+            // Display debug removed for cleaner logs
+            
+            // Try to get images from the new meta key first
+            $image_ids = get_comment_meta( $comment->comment_ID, '_review_images', true );
+            // Image IDs debug removed for cleaner logs
+            
+            // If not found, try the old meta key for backward compatibility
+            if ( empty( $image_ids ) ) {
+                $legacy_image_id = get_comment_meta( $comment->comment_ID, '_review_image_id', true );
+                if ( $legacy_image_id ) {
+                    $image_ids = array( $legacy_image_id );
+                    // Legacy ID debug removed for cleaner logs
+                }
+            }
+            
+            // Show all meta data for debugging
+            $all_meta = get_comment_meta($comment->comment_ID);
+            // Comment meta debug removed for cleaner logs
+            
+            // Display images if we have any
+            if ( ! empty( $image_ids ) && is_array( $image_ids ) ) {
+                // Display count debug removed for cleaner logs
+                
+                // Always show a basic debug message at the start to confirm this code is running
+                echo '<!-- WC Review Images Display Function Running -->';
+                echo '<div class="review-images-container" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px;">';
+                foreach ( $image_ids as $image_id ) {
+                    $full_image_url = wp_get_attachment_url( $image_id );
+                    $image_html = wp_get_attachment_image( $image_id, 'medium', false, array( 'class' => 'review-image' ) );
+                    
+                    // Image processing debug removed for cleaner logs
+                    
+                    if ( $image_html ) {
+                        echo '<div class="review-image-attachment" style="border: 1px solid #f0f0f0; padding: 5px; border-radius: 4px;">';
+                        echo '<a href="' . esc_url( $full_image_url ) . '" target="_blank">';
+                        echo $image_html;
+                        echo '</a>';
+                        echo '</div>';
+                    } else {
+                        // Image HTML error debug removed for cleaner logs
+                    }
+                }
+                echo '</div>';
+                
+                // Explicit image display as fallback
+                if (count($image_ids) > 0) {
+                    echo '<!-- Debug output -->';
+                    echo '<div style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; background: #f9f9f9;">';
+                    echo '<p><strong>Debug:</strong> ' . count($image_ids) . ' image(s) should appear above</p>';
+                    $first_id = reset($image_ids);
+                    $direct_url = wp_get_attachment_url($first_id);
+                    if ($direct_url) {
+                        echo '<img src="' . esc_url($direct_url) . '" style="max-width: 200px; height: auto;" />';
+                    }
+                    echo '</div>';
+                }
+            } else {
+                // No images debug removed for cleaner logs
+            }
+        }
+        
+        /**
+         * Enqueue scripts and styles.
+         */
+        public function enqueue_scripts() {
+            if ( is_product() ) {
+                // Basic styles for the image upload and display
+                $css = '
+                    .comment-form-image-upload {
+                        margin: 15px 0;
+                    }
+                    .review-image-attachment {
+                        margin-top: 15px;
+                    }
+                    .review-image-attachment img {
+                        max-width: 100%;
+                        height: auto;
+                        border: 1px solid #ddd;
+                        padding: 5px;
+                        background: #fff;
+                        margin: 5px 10px 5px 0;
+                    }';
+                
+                wp_add_inline_style( 'woocommerce-general', $css );
+            }
+        }
+        
+        /**
+         * Enqueue admin scripts and styles.
+         *
+         * @param string $hook Current admin page.
+         */
+        public function admin_enqueue_scripts( $hook ) {
+            if ( 'comment.php' === $hook || 'edit-comments.php' === $hook ) {
+                $css = '
+                    .wcri-admin-images {
+                        margin: 10px 0;
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+                    .wcri-admin-image-item {
+                        border: 1px solid #ddd;
+                        padding: 5px;
+                        background: #fff;
+                        max-width: 150px;
+                        position: relative;
+                    }
+                    .wcri-admin-image-item img {
+                        max-width: 100%;
+                        height: auto;
+                    }
+                ';
+                
+                wp_add_inline_style( 'wp-admin', $css );
+            }
+        }
+        
+        /**
+         * Display review images in the admin comments list.
+         *
+         * @param string     $comment_text Text of the current comment.
+         * @param WP_Comment $comment      The comment object.
+         * @return string Filtered comment text.
+         */
+        public function display_admin_review_image( $comment_text, $comment = null ) {
+            // Only run in admin
+            if ( ! is_admin() || ! $comment ) {
+                return $comment_text;
+            }
+            
+            // Only process product reviews
+            $post_type = get_post_type( $comment->comment_post_ID );
+            if ( 'product' !== $post_type ) {
+                return $comment_text;
+            }
+            
+            // Get review images
+            $image_ids = get_comment_meta( $comment->comment_ID, '_review_images', true );
+            if ( empty( $image_ids ) ) {
+                // Try legacy meta
+                $legacy_image_id = get_comment_meta( $comment->comment_ID, '_review_image_id', true );
+                if ( $legacy_image_id ) {
+                    $image_ids = array( $legacy_image_id );
+                }
+            }
+            
+            // Display review images if we have any
+            if ( ! empty( $image_ids ) && is_array( $image_ids ) ) {
+                $image_html = '<div class="wcri-admin-images">';
+                foreach ( $image_ids as $image_id ) {
+                    $full_image_url = wp_get_attachment_url( $image_id );
+                    $thumbnail = wp_get_attachment_image( $image_id, 'thumbnail', false, array( 'class' => 'review-image' ) );
+                    
+                    if ( $thumbnail ) {
+                        $image_html .= '<div class="wcri-admin-image-item">';
+                        $image_html .= '<a href="' . esc_url( $full_image_url ) . '" target="_blank">';
+                        $image_html .= $thumbnail;
+                        $image_html .= '</a>';
+                        $image_html .= '</div>';
+                    }
+                }
+                $image_html .= '</div>';
+                
+                $comment_text .= $image_html;
+            }
+            
+            return $comment_text;
+        }
+        
+        /**
+         * Add a metabox to the comment editing screen to show review images.
+         *
+         * @param WP_Comment $comment Comment object.
+         */
+        public function add_comment_images_metabox( $comment ) {
+            $post_type = get_post_type( $comment->comment_post_ID );
+            
+            // Only add for product reviews
+            if ( 'product' === $post_type ) {
+                add_meta_box(
+                    'wcri_review_images',
+                    __( 'Review Images', 'woocommerce-review-images' ),
+                    array( $this, 'render_comment_images_metabox' ),
+                    'comment',
+                    'normal',
+                    'high'
+                );
+            }
+        }
+        
+        /**
+         * Render the review images metabox content.
+         *
+         * @param WP_Comment $comment Comment object.
+         */
+        public function render_comment_images_metabox( $comment ) {
+            // Get review images
+            $image_ids = get_comment_meta( $comment->comment_ID, '_review_images', true );
+            if ( empty( $image_ids ) ) {
+                $legacy_image_id = get_comment_meta( $comment->comment_ID, '_review_image_id', true );
+                if ( $legacy_image_id ) {
+                    $image_ids = array( $legacy_image_id );
+                }
+            }
+            
+            if ( ! empty( $image_ids ) && is_array( $image_ids ) ) {
+                echo '<div class="wcri-admin-images">';
+                foreach ( $image_ids as $image_id ) {
+                    $full_image_url = wp_get_attachment_url( $image_id );
+                    $medium_image = wp_get_attachment_image( $image_id, 'medium', false );
+                    
+                    if ( $medium_image ) {
+                        echo '<div class="wcri-admin-image-item">';
+                        echo '<a href="' . esc_url( $full_image_url ) . '" target="_blank">';
+                        echo $medium_image;
+                        echo '</a>';
+                        echo '<p><strong>' . esc_html__( 'Image ID', 'woocommerce-review-images' ) . ':</strong> ' . esc_html( $image_id ) . '</p>';
+                        echo '</div>';
+                    }
+                }
+                echo '</div>';
+            } else {
+                echo '<p>' . esc_html__( 'No images attached to this review.', 'woocommerce-review-images' ) . '</p>';
+            }
+        }
+
+    } // END class WC_Review_Images
+
+    // Instantiate the plugin class.
+    WC_Review_Images::get_instance();
+
+} // END if ( ! class_exists( 'WC_Review_Images' ) )
+?>
