@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
+include_once( plugin_dir_path( __FILE__ ) . 'existing-gravatar.php' );
+
 if ( ! class_exists( 'WC_Review_Images' ) ) {
     class WC_Review_Images {
         protected static $instance = null;
