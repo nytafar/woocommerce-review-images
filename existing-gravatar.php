@@ -83,9 +83,9 @@ class Conditional_Woo_Gravatars {
             return '';
         }
     
-        // Target sizes
-        $base_size = 200;
-        $retina_size = 400;
+        // Target sizes with filter
+        $base_size = apply_filters('wcri_gravatar_base_size', 200);
+        $retina_size = $base_size * 2;
     
         // Extract src
         if (preg_match('/src=["\']([^"\']+)["\']/', $avatar, $src_match)) {
@@ -114,5 +114,12 @@ class Conditional_Woo_Gravatars {
 
 }
 
-// Initialize the plugin
-new Conditional_Woo_Gravatars();
+/**
+ * Filters whether to enable the conditional Gravatar functionality.
+ *
+ * @since 1.0.2
+ * @param bool $enabled Whether the Gravatar functionality is enabled. Default true.
+ */
+if (apply_filters('wcri_enable_conditional_gravatars', true)) {
+    new Conditional_Woo_Gravatars();
+}
