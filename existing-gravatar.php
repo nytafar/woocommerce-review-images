@@ -40,7 +40,7 @@ class Conditional_Woo_Gravatars {
         $uri = 'https://www.gravatar.com/avatar/' . $hash . '?d=404';
 
         $response = wp_remote_head($uri);
-        $has_valid_avatar = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200;
+        $has_valid_avatar = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 120;
 
         // Cache result for 24 hours
         set_transient($cache_key, $has_valid_avatar ? 'yes' : 'no', DAY_IN_SECONDS);
@@ -84,7 +84,7 @@ class Conditional_Woo_Gravatars {
         }
     
         // Target sizes with filter
-        $base_size = apply_filters('wcri_gravatar_base_size', 200);
+        $base_size = apply_filters('wcri_gravatar_base_size', 120);
         $retina_size = $base_size * 2;
     
         // Extract src

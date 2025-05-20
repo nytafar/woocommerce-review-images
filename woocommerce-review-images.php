@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Review Images
  * Plugin URI: https://github.com/nytafar/woocommerce-review-images
  * Description: Enhance WooCommerce product reviews by allowing customers to upload images with their reviews. Includes Gravatar optimization and admin management tools.
- * Version: 1.0.3
+ * Version: 1.1.0
  * Author: Lasse Jellum
  * Author URI: https://jellum.net
  * License: GPL-2.0+
@@ -23,6 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 include_once( plugin_dir_path( __FILE__ ) . 'existing-gravatar.php' );
+include_once( plugin_dir_path( __FILE__ ) . 'custom-review-meta.php' );
 
 /**
  * Filters whether to enable the review images functionality.
@@ -42,6 +43,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
             'jpg|jpeg|jpe' => 'image/jpeg',
             'gif'          => 'image/gif',
             'png'          => 'image/png',
+            'webp'         => 'image/webp',
         );
 
         public static function get_instance() {
@@ -66,7 +68,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
             add_action( 'wp_footer', array( $this, 'ensure_form_enctype_script' ), 99 );
             add_action( 'preprocess_comment', array( $this, 'handle_image_upload' ) );
             add_action( 'comment_post', array( $this, 'save_image_meta' ), 10, 2 );
-            add_action( 'woocommerce_review_after_comment_text', array( $this, 'display_review_image' ) );
+            add_action( 'woocommerce_review_before', array( $this, 'display_review_image' ) );
 
             if ( is_admin() ) {
                 add_filter( 'manage_edit-comments_columns', array( $this, 'add_review_image_admin_column_header' ) );
@@ -165,7 +167,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
         public function display_review_image( $comment ) {
             $image_id = get_comment_meta( $comment->comment_ID, self::META_KEY_IMAGE_ID, true );
             if ( $image_id ) {
-                $image_html = wp_get_attachment_image( $image_id, 'medium', false, array('style' => 'margin-top:10px;max-width:100%;height:auto;') );
+                $image_html = wp_get_attachment_image( $image_id, 'medium', false, array('style' => 'height:auto;width:100%;;') );
                 if ( $image_html ) {
                     echo $image_html;
                 }

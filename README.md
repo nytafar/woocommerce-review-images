@@ -1,7 +1,7 @@
 # WooCommerce Review Images
 
 [![WooCommerce Review Images](https://img.shields.io/badge/WooCommerce-Review%20Images-7f54b3.svg)](https://wordpress.org/plugins/woocommerce-review-images/)
-[![Version 1.0.3](https://img.shields.io/badge/Version-1.0.3-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
+[![Version 1.1.0](https://img.shields.io/badge/Version-1.1.0-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
 [![WooCommerce 5.0+](https://img.shields.io/badge/WooCommerce-5.0+-a46497.svg)](https://woocommerce.com/)
 [![PHP 7.4+](https://img.shields.io/badge/PHP-7.4+-8892BF.svg)](https://php.net/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
@@ -124,7 +124,33 @@ add_filter('wcri_gravatar_base_size', function() {
 });
 ```
 
+### 5. Review Meta Customization Hooks
+The following hooks allow for granular customization of the review meta output:
+
+| Hook Name | Description |
+|-----------|-------------|
+| `woocommerce_review_meta_start` | Fires at the very beginning of the meta block. Useful for wrapping markup or adding icons. |
+| `woocommerce_review_meta_author` | Fires before or around the author name. Useful if you want to prepend or wrap the name. |
+| `woocommerce_review_meta_after_author` | Fires immediately after the author name, before the verified badge. Great for adding avatars or separators. |
+| `woocommerce_review_meta_after_verified` | Fires after the verified badge and before the date. |
+| `woocommerce_review_meta_end` | Fires at the very end of the meta block, just before closing `</p>`. Useful for appending icons or badges. |
+
+Example usage:
+```php
+// Add a custom icon before the author name
+add_action('woocommerce_review_meta_author', function() {
+    echo '<span class="review-author-icon">👤</span> ';
+});
+```
+
 ## Changelog
+
+### 1.1.0 - 2025-05-20
+- Added granular hooks for customizing review meta output
+- New hooks: `woocommerce_review_meta_start`, `woocommerce_review_meta_author`, 
+  `woocommerce_review_meta_after_author`, `woocommerce_review_meta_after_verified`,
+  and `woocommerce_review_meta_end`
+- Improved customization options for review display
 
 ### 1.0.3 - 2025-05-20
 - Added ability to completely disable review images functionality via filter
