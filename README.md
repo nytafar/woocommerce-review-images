@@ -1,7 +1,7 @@
 # WooCommerce Review Images
 
 [![WooCommerce Review Images](https://img.shields.io/badge/WooCommerce-Review%20Images-7f54b3.svg)](https://wordpress.org/plugins/woocommerce-review-images/)
-[![Version 1.1.0](https://img.shields.io/badge/Version-1.1.0-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
+[![Version 1.1.1](https://img.shields.io/badge/Version-1.1.1-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
 [![WooCommerce 5.0+](https://img.shields.io/badge/WooCommerce-5.0+-a46497.svg)](https://woocommerce.com/)
 [![PHP 7.4+](https://img.shields.io/badge/PHP-7.4+-8892BF.svg)](https://php.net/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
@@ -144,6 +144,12 @@ add_action('woocommerce_review_meta_author', function() {
 ```
 
 ## Changelog
+
+### 1.1.1 - 2025-05-22
+- Fixed critical bug in conditional Gravatar display
+- Improved Gravatar detection and caching mechanism
+- Fixed HTTP status code validation for Gravatar existence check
+- Enhanced error handling for Gravatar display
 
 ### 1.1.0 - 2025-05-20
 - Added granular hooks for customizing review meta output

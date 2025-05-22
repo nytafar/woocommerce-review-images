@@ -28,7 +28,7 @@ class Conditional_Woo_Gravatars {
         }
 
         // Check cache first
-        $cache_key = 'cwg_has_gravatar_' . md5($email);
+        $cache_key = 'wcri_has_gravatar_' . md5($email);
         $cached_result = get_transient($cache_key);
 
         if ($cached_result !== false) {
@@ -40,7 +40,7 @@ class Conditional_Woo_Gravatars {
         $uri = 'https://www.gravatar.com/avatar/' . $hash . '?d=404';
 
         $response = wp_remote_head($uri);
-        $has_valid_avatar = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 120;
+        $has_valid_avatar = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200;
 
         // Cache result for 24 hours
         set_transient($cache_key, $has_valid_avatar ? 'yes' : 'no', DAY_IN_SECONDS);
@@ -62,6 +62,7 @@ class Conditional_Woo_Gravatars {
      * @return string Filtered avatar HTML
      */
     public function filter_woocommerce_gravatar($avatar, $id_or_email, $size, $default, $alt, $args = array()) {
+        // Only modify avatars on product pages if conditional gravatars are enabled
         if (!function_exists('is_product') || !is_product()) {
             return $avatar;
         }
@@ -79,8 +80,19 @@ class Conditional_Woo_Gravatars {
             }
         }
     
-        if (empty($email) || !$this->has_gravatar($email)) {
-            return '';
+        // If no email or email is invalid, return original avatar
+        if (empty($email) || !is_email($email)) {
+            return $avatar;
+        }
+
+        // If conditional gravatars are disabled, return original avatar
+        if (!apply_filters('wcri_enable_conditional_gravatars', true)) {
+            return $avatar;
+        }
+
+        // Check if user has a custom gravatar
+        if (!$this->has_gravatar($email)) {
+            return ''; // Return empty string to hide the gravatar
         }
     
         // Target sizes with filter
@@ -88,30 +100,28 @@ class Conditional_Woo_Gravatars {
         $retina_size = $base_size * 2;
     
         // Extract src
-        if (preg_match('/src=["\']([^"\']+)["\']/', $avatar, $src_match)) {
+        if (preg_match('/src=[\'"]([^\'"]+)[\'"]/', $avatar, $src_match)) {
             $src_url = $src_match[1];
             $src_url = preg_replace('/s=\d+/', 's=' . $base_size, $src_url);
-            $avatar = preg_replace('/src=["\'][^"\']+["\']/', 'src="' . esc_url($src_url) . '"', $avatar);
+            $avatar = preg_replace('/src=[\'"][^\'"]+[\'"]/', 'src="' . esc_url($src_url) . '"', $avatar);
         }
     
         // Generate srcset with retina
         $srcset_url = preg_replace('/s=\d+/', 's=' . $retina_size, $src_url);
         $avatar = preg_replace(
-            '/srcset=["\'][^"\']*["\']/',
+            '/srcset=[\'"][^\'"]*[\'"]/',
             'srcset="' . esc_url($srcset_url) . ' 2x"',
             $avatar
         );
     
         // Replace width and height
-        $avatar = preg_replace('/(width|height)=["\']\d+["\']/', '$1="' . $base_size . '"', $avatar);
+        $avatar = preg_replace('/(width|height)=[\'"](\d+)[\'"]/', '$1="' . $base_size . '"', $avatar);
     
-        // Optional: update class name
-        $avatar = preg_replace('/avatar-\d+/', 'avatar-' . $base_size, $avatar);
+        // Update class name to include our custom class
+        $avatar = str_replace('class="', 'class="wcri-gravatar ', $avatar);
     
         return $avatar;
     }
-    
-
 }
 
 /**

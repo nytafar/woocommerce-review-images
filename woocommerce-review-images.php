@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Review Images
  * Plugin URI: https://github.com/nytafar/woocommerce-review-images
  * Description: Enhance WooCommerce product reviews by allowing customers to upload images with their reviews. Includes Gravatar optimization and admin management tools.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Lasse Jellum
  * Author URI: https://jellum.net
  * License: GPL-2.0+
