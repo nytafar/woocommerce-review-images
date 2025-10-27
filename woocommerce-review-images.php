@@ -95,23 +95,98 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
             static $field_displayed = false;
             if ( $field_displayed ) return;
 
-            $default_label_text = __( 'Upload an image (optional, max 2MB, JPG, PNG, GIF)', 'woocommerce-review-images' );
+            // Check if avatar upload is enabled
+            $avatar_enabled = apply_filters('wcri_enable_avatar_upload', true);
             
-            /**
-             * Filters the label text for the review image upload field.
-             *
-             * @since 0.8.0
-             *
-             * @param string   $default_label_text The default translatable label text.
-             * @param WP_Post|null $product            The current product post object (null if not on a product page, though this function checks for is_product()).
-             */
-            $label_text = apply_filters( 'wcri_upload_field_label_text', $default_label_text, get_post() );
-
-            echo '<p class="comment-form-image-upload">';
-            echo '<label for="wcri_review_image_upload">' . esc_html( $label_text ) . '</label>';
-            echo '<input type="file" id="wcri_review_image_upload" name="wcri_review_image_upload" accept="image/jpeg,image/png,image/gif" />';
-            echo '</p>';
-            wp_nonce_field( 'wcri_image_upload_action', 'wcri_image_upload_nonce' );
+            // Get filterable labels
+            $avatar_label = apply_filters('wcri_avatar_upload_field_label_text', __('Your Photo', 'woocommerce-review-images'), get_post());
+            $review_label = apply_filters('wcri_upload_field_label_text', __('Product Image', 'woocommerce-review-images'), get_post());
+            
+            ?>
+            <style>
+                .wcri-upload-container {
+                    display: flex;
+                    gap: 20px;
+                    margin: 15px 0;
+                    flex-wrap: wrap;
+                }
+                .wcri-upload-field {
+                    flex: 1;
+                    min-width: 250px;
+                    padding: 20px;
+                    border: 2px dashed #ddd;
+                    border-radius: 8px;
+                    background: #fafafa;
+                    transition: all 0.3s ease;
+                }
+                .wcri-upload-field:hover {
+                    border-color: #999;
+                    background: #f5f5f5;
+                }
+                .wcri-upload-field label {
+                    display: block;
+                    font-weight: 600;
+                    font-size: 15px;
+                    margin-bottom: 10px;
+                    color: #333;
+                }
+                .wcri-upload-field input[type="file"] {
+                    width: 100%;
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    background: white;
+                    cursor: pointer;
+                }
+                .wcri-upload-field input[type="file"]:hover {
+                    border-color: #999;
+                }
+                .wcri-upload-hint {
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 6px;
+                    font-style: italic;
+                }
+                @media (max-width: 768px) {
+                    .wcri-upload-container {
+                        flex-direction: column;
+                    }
+                    .wcri-upload-field {
+                        min-width: 100%;
+                    }
+                }
+            </style>
+            <div class="wcri-upload-container">
+                <?php if ($avatar_enabled) : ?>
+                <div class="wcri-upload-field comment-form-avatar-upload">
+                    <label for="wcri_avatar_upload">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <?php echo esc_html($avatar_label); ?>
+                    </label>
+                    <input type="file" id="wcri_avatar_upload" name="wcri_avatar_upload" accept="image/jpeg,image/png,image/gif,image/webp" />
+                    <div class="wcri-upload-hint"><?php esc_html_e('Upload your profile picture', 'woocommerce-review-images'); ?></div>
+                    <?php wp_nonce_field('wcri_avatar_upload_action', 'wcri_avatar_upload_nonce', false); ?>
+                </div>
+                <?php endif; ?>
+                
+                <div class="wcri-upload-field comment-form-image-upload">
+                    <label for="wcri_review_image_upload">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <?php echo esc_html($review_label); ?>
+                    </label>
+                    <input type="file" id="wcri_review_image_upload" name="wcri_review_image_upload" accept="image/jpeg,image/png,image/gif,image/webp" />
+                    <div class="wcri-upload-hint"><?php esc_html_e('Share a photo of the product', 'woocommerce-review-images'); ?></div>
+                    <?php wp_nonce_field('wcri_image_upload_action', 'wcri_image_upload_nonce', false); ?>
+                </div>
+            </div>
+            <?php
             $field_displayed = true;
         }
         

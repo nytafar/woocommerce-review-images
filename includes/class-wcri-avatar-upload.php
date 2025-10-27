@@ -80,9 +80,8 @@ class WC_Review_Images_Avatar_Upload {
             return;
         }
 
-        // Add avatar upload field to review form
-        add_action('comment_form_logged_in_after', array($this, 'display_avatar_upload_field'), 5);
-        add_action('comment_form_after_fields', array($this, 'display_avatar_upload_field'), 5);
+        // Note: Avatar upload field is now displayed by the main WC_Review_Images class
+        // in a unified UI alongside the review image upload field
 
         // Handle avatar upload during comment processing
         add_action('preprocess_comment', array($this, 'handle_avatar_upload'));
