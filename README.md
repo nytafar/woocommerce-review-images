@@ -1,7 +1,7 @@
 # WooCommerce Review Images
 
 [![WooCommerce Review Images](https://img.shields.io/badge/WooCommerce-Review%20Images-7f54b3.svg)](https://wordpress.org/plugins/woocommerce-review-images/)
-[![Version 1.1.1](https://img.shields.io/badge/Version-1.1.1-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
+[![Version 1.2.0](https://img.shields.io/badge/Version-1.2.0-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
 [![WooCommerce 5.0+](https://img.shields.io/badge/WooCommerce-5.0+-a46497.svg)](https://woocommerce.com/)
 [![PHP 7.4+](https://img.shields.io/badge/PHP-7.4+-8892BF.svg)](https://php.net/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
@@ -12,14 +12,15 @@ Enhance your WooCommerce product reviews by allowing customers to upload images 
 
 ## Features
 
-- Allow customers to upload images with product reviews
-- Admin interface to manage review images
-- Optimized Gravatar display for review authors
-- Mobile-friendly image upload interface
-- Configurable image size and quality settings
-- Support for multiple image formats (JPEG, PNG, GIF)
-- Secure file upload handling
-- GDPR compliant (stores user consent for uploads)
+- **Custom Avatar Uploads**: Allow customers to upload their profile photo/avatar with reviews (takes precedence over Gravatar)
+- **Review Image Uploads**: Allow customers to upload images with product reviews
+- **Admin Interface**: Manage review images and avatars from WordPress admin
+- **Optimized Gravatar Display**: Conditional Gravatar loading for review authors
+- **Mobile-Friendly**: Responsive image upload interface
+- **Configurable Settings**: Image size and quality settings
+- **Multiple Formats**: Support for JPEG, PNG, GIF, and WebP
+- **Secure File Handling**: Secure file upload with validation
+- **GDPR Compliant**: Stores user consent for uploads
 
 ## Requirements
 
@@ -62,20 +63,75 @@ add_filter('wcri_enable_conditional_gravatars', '__return_false');
 ### For Customers
 
 1. Write a product review as usual
-2. Click "Choose File" to upload an image
-3. Submit your review
-4. The image will appear alongside your review
+2. **Upload Profile Photo** (optional): Choose a file to upload your avatar/profile photo
+3. **Upload Review Image** (optional): Choose a file to upload an image related to the product
+4. Submit your review
+5. Your custom avatar and review image will appear with your review
 
 ### For Administrators
 
 1. Go to **Comments** in WordPress admin
-2. Locate the review with an image
-3. The image will be visible in the comment list and edit screen
-4. You can delete the image if needed
+2. Locate the review with an image or avatar
+3. Both the avatar and review image will be visible in the comment list and edit screen
+4. You can manage or delete images as needed from the media library
 
 ## Available Filters
 
-### 1. `wcri_enable_review_images`
+### Avatar Upload Filters
+
+#### `wcri_enable_avatar_upload`
+Toggle the avatar upload functionality.
+
+```php
+// Disable avatar upload functionality
+add_filter('wcri_enable_avatar_upload', '__return_false');
+
+// Or conditionally enable
+add_filter('wcri_enable_avatar_upload', function($enabled) {
+    return is_user_logged_in(); // Only allow logged-in users to upload avatars
+});
+```
+
+#### `wcri_avatar_upload_field_label_text`
+Customize the avatar upload field label text.
+
+```php
+add_filter('wcri_avatar_upload_field_label_text', function($default_text, $product) {
+    return __('Upload your photo (optional)', 'your-text-domain');
+}, 10, 2);
+```
+
+#### `wcri_avatar_base_size`
+Set the base size for custom avatars in pixels.
+
+```php
+// Set base avatar size to 96px (will serve 96px and 192px for retina)
+add_filter('wcri_avatar_base_size', function() {
+    return 96; // Default is 120px
+});
+```
+
+#### `wcri_custom_avatar_html`
+Filter the custom avatar HTML output.
+
+```php
+add_filter('wcri_custom_avatar_html', function($html, $comment_id, $avatar_id, $size) {
+    // Modify avatar HTML as needed
+    return $html;
+}, 10, 4);
+```
+
+#### `wcri_display_avatar_in_meta`
+Control whether to display avatar in review meta section.
+
+```php
+// Hide avatar in review meta
+add_filter('wcri_display_avatar_in_meta', '__return_false');
+```
+
+### Review Image Filters
+
+#### 1. `wcri_enable_review_images`
 Toggle the entire review images functionality.
 
 ```php
@@ -88,7 +144,7 @@ add_filter('wcri_enable_review_images', function($enabled) {
 });
 ```
 
-### 2. `wcri_upload_field_label_text`
+#### 2. `wcri_upload_field_label_text`
 Customize the upload field label text.
 
 ```php
@@ -101,7 +157,7 @@ add_filter('wcri_upload_field_label_text', function($default_text, $product) {
 }, 10, 2);
 ```
 
-### 3. `wcri_enable_conditional_gravatars`
+#### 3. `wcri_enable_conditional_gravatars`
 Optimize Gravatar loading by only loading Gravatars for users who have custom avatars.
 
 ```php
@@ -114,7 +170,7 @@ add_filter('wcri_enable_conditional_gravatars', function() {
 });
 ```
 
-### 4. `wcri_gravatar_base_size`
+#### 4. `wcri_gravatar_base_size`
 Set the base width for Gravatars in pixels. The plugin will automatically generate both standard and retina (2x) versions.
 
 ```php
@@ -124,7 +180,7 @@ add_filter('wcri_gravatar_base_size', function() {
 });
 ```
 
-### 5. Review Meta Customization Hooks
+#### 5. Review Meta Customization Hooks
 The following hooks allow for granular customization of the review meta output:
 
 | Hook Name | Description |
@@ -144,6 +200,19 @@ add_action('woocommerce_review_meta_author', function() {
 ```
 
 ## Changelog
+
+### 1.2.0 - 2025-10-27
+- **NEW**: Added custom avatar upload functionality for review authors
+- **NEW**: Custom avatars take precedence over Gravatar images
+- **NEW**: Extended conditional display logic to custom avatars
+- **NEW**: Separate modular classes for avatar upload and display
+- **IMPROVED**: Better code organization with dedicated includes directory
+- **IMPROVED**: Enhanced extensibility with new filters and hooks
+- Added `wcri_enable_avatar_upload` filter
+- Added `wcri_avatar_upload_field_label_text` filter
+- Added `wcri_avatar_base_size` filter
+- Added `wcri_custom_avatar_html` filter
+- Added `wcri_display_avatar_in_meta` filter
 
 ### 1.1.1 - 2025-05-22
 - Fixed critical bug in conditional Gravatar display
