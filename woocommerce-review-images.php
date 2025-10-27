@@ -30,6 +30,20 @@ include_once( plugin_dir_path( __FILE__ ) . 'custom-review-meta.php' );
 include_once( plugin_dir_path( __FILE__ ) . 'includes/class-wcri-avatar-upload.php' );
 include_once( plugin_dir_path( __FILE__ ) . 'includes/class-wcri-avatar-display.php' );
 
+// Load text domain on plugins_loaded (standard WordPress hook)
+add_action( 'plugins_loaded', function() {
+    load_plugin_textdomain( 'woocommerce-review-images', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+    
+    // Debug: Check if translations are loaded (remove in production)
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        add_action('wp_footer', function() {
+            $locale = get_locale();
+            $loaded = is_textdomain_loaded('woocommerce-review-images');
+            echo "<!-- WCRI Debug - Locale: $locale, Textdomain loaded: " . ($loaded ? 'Yes' : 'No') . " -->";
+        });
+    }
+} );
+
 /**
  * Filters whether to enable the review images functionality.
  *
@@ -63,9 +77,6 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
         }
 
         public function init() {
-            // Load plugin text domain
-            load_plugin_textdomain( 'woocommerce-review-images', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-            
             if ( ! class_exists( 'WooCommerce' ) ) {
                 add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
                 return;
