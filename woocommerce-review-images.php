@@ -118,6 +118,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                     border-radius: 8px;
                     background: #fafafa;
                     transition: all 0.3s ease;
+                    position: relative;
                 }
                 .wcri-upload-field:hover {
                     border-color: #999;
@@ -131,21 +132,59 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                     color: #333;
                 }
                 .wcri-upload-field input[type="file"] {
-                    width: 100%;
-                    padding: 8px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    background: white;
-                    cursor: pointer;
+                    position: absolute;
+                    width: 1px;
+                    height: 1px;
+                    padding: 0;
+                    margin: -1px;
+                    overflow: hidden;
+                    clip: rect(0, 0, 0, 0);
+                    border: 0;
                 }
-                .wcri-upload-field input[type="file"]:hover {
-                    border-color: #999;
+                .wcri-upload-button {
+                    display: block;
+                    width: 100%;
+                    padding: 12px;
+                    background: #f0f0f1;
+                    border: 1px dashed #8c8f94;
+                    border-radius: 4px;
+                    color: #2271b1;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                .wcri-upload-button:hover {
+                    background: #e0e0e0;
+                    border-color: #2271b1;
+                }
+                .wcri-preview-container {
+                    margin-top: 10px;
+                    display: none;
+                    text-align: center;
+                }
+                .wcri-preview-image {
+                    max-width: 100%;
+                    max-height: 200px;
+                    border-radius: 4px;
+                    margin-top: 10px;
+                    display: block;
+                }
+                .wcri-remove-image {
+                    display: inline-block;
+                    margin-top: 5px;
+                    color: #d63638;
+                    text-decoration: none;
+                    font-size: 12px;
+                }
+                .wcri-remove-image:hover {
+                    text-decoration: underline;
                 }
                 .wcri-upload-hint {
                     font-size: 12px;
                     color: #666;
-                    margin-top: 6px;
+                    margin: 10px 0 5px;
                     font-style: italic;
+                    display: block;
                 }
                 @media (max-width: 768px) {
                     .wcri-upload-container {
@@ -167,7 +206,14 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                         <?php echo esc_html($avatar_label); ?>
                     </label>
                     <input type="file" id="wcri_avatar_upload" name="wcri_avatar_upload" accept="image/jpeg,image/png,image/gif,image/webp" />
+                    <label for="wcri_avatar_upload" class="wcri-upload-button">
+                        <?php esc_html_e('Choose Photo', 'woocommerce-review-images'); ?>
+                    </label>
                     <div class="wcri-upload-hint"><?php esc_html_e('Upload your profile picture', 'woocommerce-review-images'); ?></div>
+                    <div class="wcri-preview-container" id="wcri_avatar_preview">
+                        <img class="wcri-preview-image" alt="<?php esc_attr_e('Avatar preview', 'woocommerce-review-images'); ?>" />
+                        <a href="#" class="wcri-remove-image" data-target="wcri_avatar_upload"><?php esc_html_e('Remove', 'woocommerce-review-images'); ?></a>
+                    </div>
                     <?php wp_nonce_field('wcri_avatar_upload_action', 'wcri_avatar_upload_nonce', false); ?>
                 </div>
                 <?php endif; ?>
@@ -182,10 +228,70 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                         <?php echo esc_html($review_label); ?>
                     </label>
                     <input type="file" id="wcri_review_image_upload" name="wcri_review_image_upload" accept="image/jpeg,image/png,image/gif,image/webp" />
+                    <label for="wcri_review_image_upload" class="wcri-upload-button">
+                        <?php esc_html_e('Choose Image', 'woocommerce-review-images'); ?>
+                    </label>
                     <div class="wcri-upload-hint"><?php esc_html_e('Share a photo of the product', 'woocommerce-review-images'); ?></div>
+                    <div class="wcri-preview-container" id="wcri_review_image_preview">
+                        <img class="wcri-preview-image" alt="<?php esc_attr_e('Review image preview', 'woocommerce-review-images'); ?>" />
+                        <a href="#" class="wcri-remove-image" data-target="wcri_review_image_upload"><?php esc_html_e('Remove', 'woocommerce-review-images'); ?></a>
+                    </div>
                     <?php wp_nonce_field('wcri_image_upload_action', 'wcri_image_upload_nonce', false); ?>
                 </div>
             </div>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                // Handle file input changes for preview
+                $('.wcri-upload-field input[type="file"]').on('change', function(e) {
+                    const file = e.target.files[0];
+                    const $field = $(this).closest('.wcri-upload-field');
+                    const $preview = $field.find('.wcri-preview-container');
+                    const $previewImg = $preview.find('.wcri-preview-image');
+                    const $button = $field.find('.wcri-upload-button');
+                    const isAvatar = $field.hasClass('comment-form-avatar-upload');
+                    
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            $previewImg.attr('src', e.target.result);
+                            $preview.show();
+                            if (isAvatar) {
+                                $button.text('<?php echo esc_js(__('Change Photo', 'woocommerce-review-images')); ?>');
+                            } else {
+                                $button.text('<?php echo esc_js(__('Change Image', 'woocommerce-review-images')); ?>');
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        $preview.hide();
+                        if (isAvatar) {
+                            $button.text('<?php echo esc_js(__('Choose Photo', 'woocommerce-review-images')); ?>');
+                        } else {
+                            $button.text('<?php echo esc_js(__('Choose Image', 'woocommerce-review-images')); ?>');
+                        }
+                    }
+                });
+                
+                // Handle remove image clicks
+                $('.wcri-remove-image').on('click', function(e) {
+                    e.preventDefault();
+                    const $field = $(this).closest('.wcri-upload-field');
+                    const $input = $field.find('input[type="file"]');
+                    const $preview = $field.find('.wcri-preview-container');
+                    const $button = $field.find('.wcri-upload-button');
+                    const isAvatar = $field.hasClass('comment-form-avatar-upload');
+                    
+                    $input.val('');
+                    $preview.hide();
+                    if (isAvatar) {
+                        $button.text('<?php echo esc_js(__('Choose Photo', 'woocommerce-review-images')); ?>');
+                    } else {
+                        $button.text('<?php echo esc_js(__('Choose Image', 'woocommerce-review-images')); ?>');
+                    }
+                });
+            });
+            </script>
             <?php
             $field_displayed = true;
         }
