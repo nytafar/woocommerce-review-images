@@ -256,6 +256,14 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
             
             <script>
             jQuery(document).ready(function($) {
+                // Translated strings
+                const wcriStrings = {
+                    changePhoto: '<?php echo esc_js(__('Change Photo', 'woocommerce-review-images')); ?>',
+                    changeImage: '<?php echo esc_js(__('Change Image', 'woocommerce-review-images')); ?>',
+                    choosePhoto: '<?php echo esc_js(__('Choose Photo', 'woocommerce-review-images')); ?>',
+                    chooseImage: '<?php echo esc_js(__('Choose Image', 'woocommerce-review-images')); ?>'
+                };
+                
                 // Handle file input changes for preview
                 $('.wcri-upload-field input[type="file"]').on('change', function(e) {
                     const file = e.target.files[0];
@@ -271,18 +279,18 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                             $previewImg.attr('src', e.target.result);
                             $preview.show();
                             if (isAvatar) {
-                                $button.text('<?php echo esc_js(__('Change Photo', 'woocommerce-review-images')); ?>');
+                                $button.text(wcriStrings.changePhoto);
                             } else {
-                                $button.text('<?php echo esc_js(__('Change Image', 'woocommerce-review-images')); ?>');
+                                $button.text(wcriStrings.changeImage);
                             }
                         };
                         reader.readAsDataURL(file);
                     } else {
                         $preview.hide();
                         if (isAvatar) {
-                            $button.text('<?php echo esc_js(__('Choose Photo', 'woocommerce-review-images')); ?>');
+                            $button.text(wcriStrings.choosePhoto);
                         } else {
-                            $button.text('<?php echo esc_js(__('Choose Image', 'woocommerce-review-images')); ?>');
+                            $button.text(wcriStrings.chooseImage);
                         }
                     }
                 });
@@ -299,9 +307,9 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                     $input.val('');
                     $preview.hide();
                     if (isAvatar) {
-                        $button.text('<?php echo esc_js(__('Choose Photo', 'woocommerce-review-images')); ?>');
+                        $button.text(wcriStrings.choosePhoto);
                     } else {
-                        $button.text('<?php echo esc_js(__('Choose Image', 'woocommerce-review-images')); ?>');
+                        $button.text(wcriStrings.chooseImage);
                     }
                 });
             });
