@@ -66,7 +66,12 @@ class Conditional_Woo_Gravatars {
         if (!function_exists('is_product') || !is_product()) {
             return $avatar;
         }
-    
+
+        // If a custom uploaded avatar has already been applied, do not modify it
+        if (is_string($avatar) && strpos($avatar, 'wcri-custom-avatar') !== false) {
+            return $avatar;
+        }
+
         $email = '';
         if (is_object($id_or_email) && isset($id_or_email->comment_ID)) {
             $comment = $id_or_email;
@@ -90,9 +95,9 @@ class Conditional_Woo_Gravatars {
             return $avatar;
         }
 
-        // Check if user has a custom gravatar
+        // Check if user has a custom gravatar. If not, preserve any incoming avatar (e.g., custom uploaded one)
         if (!$this->has_gravatar($email)) {
-            return ''; // Return empty string to hide the gravatar
+            return $avatar; // Keep existing avatar (may be empty if none, or custom if provided)
         }
     
         // Target sizes with filter

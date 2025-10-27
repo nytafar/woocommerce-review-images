@@ -223,7 +223,7 @@ class WC_Review_Images_Avatar_Display {
          * @param bool $display Whether to display avatar. Default true.
          * @param WP_Comment $comment Comment object
          */
-        if (!apply_filters('wcri_display_avatar_in_meta', true, $comment)) {
+        if (!apply_filters('wcri_display_avatar_in_meta', false, $comment)) {
             return;
         }
 
