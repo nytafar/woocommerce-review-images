@@ -1,0 +1,97 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR WooCommerce Review Images
+# This file is distributed under the same license as the WooCommerce Review Images package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Review Images 1.2.0\n"
+"Report-Msgid-Bugs-To: https://github.com/nytafar/woocommerce-review-images/"
+"issues\n"
+"POT-Creation-Date: 2025-10-27 16:45+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: custom-review-meta.php:56
+msgid "(verified owner)"
+msgstr ""
+
+#: woocommerce-review-images.php:88
+msgid ""
+"WooCommerce Review Images plugin requires WooCommerce to be installed and "
+"active."
+msgstr ""
+
+#: woocommerce-review-images.php:102
+msgid "Your Photo"
+msgstr ""
+
+#: woocommerce-review-images.php:103
+msgid "Product Image"
+msgstr ""
+
+#: woocommerce-review-images.php:210 woocommerce-review-images.php:269
+#: woocommerce-review-images.php:288
+msgid "Choose Photo"
+msgstr ""
+
+#: woocommerce-review-images.php:212
+msgid "Upload your profile picture"
+msgstr ""
+
+#: woocommerce-review-images.php:214
+msgid "Avatar preview"
+msgstr ""
+
+#: woocommerce-review-images.php:215 woocommerce-review-images.php:237
+msgid "Remove"
+msgstr ""
+
+#: woocommerce-review-images.php:232 woocommerce-review-images.php:271
+#: woocommerce-review-images.php:290
+msgid "Choose Image"
+msgstr ""
+
+#: woocommerce-review-images.php:234
+msgid "Share a photo of the product"
+msgstr ""
+
+#: woocommerce-review-images.php:236
+msgid "Review image preview"
+msgstr ""
+
+#: woocommerce-review-images.php:260
+msgid "Change Photo"
+msgstr ""
+
+#: woocommerce-review-images.php:262
+msgid "Change Image"
+msgstr ""
+
+#: woocommerce-review-images.php:373 woocommerce-review-images.php:378
+msgid "Image"
+msgstr ""
+
+#: woocommerce-review-images.php:391 woocommerce-review-images.php:394
+msgid "N/A"
+msgstr ""
+
+#: woocommerce-review-images.php:405
+msgid "Review Image"
+msgstr ""
+
+#: woocommerce-review-images.php:421
+msgid ""
+"Image data found, but the image could not be displayed. It might have been "
+"deleted from the media library."
+msgstr ""
+
+#: woocommerce-review-images.php:424
+msgid "No image was uploaded with this review."
+msgstr ""

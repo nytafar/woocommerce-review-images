@@ -63,6 +63,9 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
         }
 
         public function init() {
+            // Load plugin text domain
+            load_plugin_textdomain( 'woocommerce-review-images', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+            
             if ( ! class_exists( 'WooCommerce' ) ) {
                 add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
                 return;
