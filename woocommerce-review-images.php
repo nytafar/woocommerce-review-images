@@ -39,7 +39,8 @@ add_action( 'plugins_loaded', function() {
         add_action('wp_footer', function() {
             $locale = get_locale();
             $loaded = is_textdomain_loaded('woocommerce-review-images');
-            echo "<!-- WCRI Debug - Locale: $locale, Textdomain loaded: " . ($loaded ? 'Yes' : 'No') . " -->";
+            $test_translation = __('Choose Photo', 'woocommerce-review-images');
+            echo "<!-- WCRI Debug - Locale: $locale, Textdomain loaded: " . ($loaded ? 'Yes' : 'No') . ", Test translation: $test_translation -->";
         });
     }
 } );
