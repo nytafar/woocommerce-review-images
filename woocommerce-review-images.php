@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Review Images
  * Plugin URI: https://github.com/nytafar/woocommerce-review-images
  * Description: Enhance WooCommerce product reviews by allowing customers to upload images with their reviews. Includes custom avatar uploads, Gravatar optimization, and admin management tools.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Lasse Jellum
  * Author URI: https://jellum.net
  * License: GPL-2.0+
@@ -33,11 +33,39 @@ include_once( plugin_dir_path( __FILE__ ) . 'includes/class-wcri-avatar-display.
 // Load text domain on plugins_loaded (standard WordPress hook)
 add_action( 'plugins_loaded', function() {
     load_plugin_textdomain( 'woocommerce-review-images', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-    
+
+    // Fallback: explicitly load from bundled languages if not loaded yet
+    if ( ! is_textdomain_loaded( 'woocommerce-review-images' ) ) {
+        $lang_dir = plugin_dir_path( __FILE__ ) . 'languages/';
+        // Prefer the current (filtered) locale
+        $locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+        $candidates = array(
+            'woocommerce-review-images-' . $locale . '.mo',
+        );
+
+        // Also try common Norwegian variants
+        $norwegian_variants = array( 'nb_NO', 'nb', 'no_NO', 'no' );
+        foreach ( $norwegian_variants as $var ) {
+            if ( $var !== $locale ) {
+                $candidates[] = 'woocommerce-review-images-' . $var . '.mo';
+            }
+        }
+
+        foreach ( $candidates as $file ) {
+            $path = $lang_dir . $file;
+            if ( file_exists( $path ) ) {
+                load_textdomain( 'woocommerce-review-images', $path );
+                if ( is_textdomain_loaded( 'woocommerce-review-images' ) ) {
+                    break;
+                }
+            }
+        }
+    }
+
     // Debug: Check if translations are loaded (remove in production)
     if (defined('WP_DEBUG') && WP_DEBUG) {
         add_action('wp_footer', function() {
-            $locale = get_locale();
+            $locale = function_exists('determine_locale') ? determine_locale() : get_locale();
             $loaded = is_textdomain_loaded('woocommerce-review-images');
             $test_translation = __('Choose Photo', 'woocommerce-review-images');
             echo "<!-- WCRI Debug - Locale: $locale, Textdomain loaded: " . ($loaded ? 'Yes' : 'No') . ", Test translation: $test_translation -->";
@@ -83,6 +111,9 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                 return;
             }
 
+            // Frontend assets
+            add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+
             add_action( 'comment_form_logged_in_after', array( $this, 'display_upload_field_and_nonce' ) );
             add_action( 'comment_form_after_fields', array( $this, 'display_upload_field_and_nonce' ) );    
             add_action( 'wp_footer', array( $this, 'ensure_form_enctype_script' ), 99 );
@@ -94,6 +125,30 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                 add_filter( 'manage_edit-comments_columns', array( $this, 'add_review_image_admin_column_header' ) );
                 add_action( 'manage_comments_custom_column', array( $this, 'display_review_image_admin_column_content' ), 10, 2 );
                 add_action( 'add_meta_boxes_comment', array( $this, 'add_review_image_meta_box' ) );
+            }
+        }
+
+        /**
+         * Enqueue frontend assets for the review uploads UI
+         */
+        public function enqueue_assets() {
+            if ( function_exists('is_product') && is_product() && comments_open() ) {
+                if ( apply_filters( 'wcri_enqueue_styles', true ) ) {
+                    wp_enqueue_style(
+                        'wcri-styles',
+                        plugins_url( 'assets/css/woocommerce-review-images.css', __FILE__ ),
+                        array(),
+                        '1.2.1'
+                    );
+                }
+
+                wp_enqueue_script(
+                    'wcri-toggle',
+                    plugins_url( 'assets/js/wcri-toggle.js', __FILE__ ),
+                    array(), // No dependencies
+                    '1.2.1',
+                    true
+                );
             }
         }
 
@@ -118,98 +173,6 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
             $review_label = apply_filters('wcri_upload_field_label_text', __('Product Image', 'woocommerce-review-images'), get_post());
             
             ?>
-            <style>
-                .wcri-upload-container {
-                    display: flex;
-                    gap: 20px;
-                    margin: 15px 0;
-                    flex-wrap: wrap;
-                }
-                .wcri-upload-field {
-                    flex: 1;
-                    min-width: 250px;
-                    padding: 20px;
-                    border: 2px dashed #ddd;
-                    border-radius: 8px;
-                    background: #fafafa;
-                    transition: all 0.3s ease;
-                    position: relative;
-                }
-                .wcri-upload-field:hover {
-                    border-color: #999;
-                    background: #f5f5f5;
-                }
-                .wcri-upload-field label {
-                    display: block;
-                    font-weight: 600;
-                    font-size: 15px;
-                    margin-bottom: 10px;
-                    color: #333;
-                }
-                .wcri-upload-field input[type="file"] {
-                    position: absolute;
-                    width: 1px;
-                    height: 1px;
-                    padding: 0;
-                    margin: -1px;
-                    overflow: hidden;
-                    clip: rect(0, 0, 0, 0);
-                    border: 0;
-                }
-                .wcri-upload-button {
-                    display: block;
-                    width: 100%;
-                    padding: 12px;
-                    background: #f0f0f1;
-                    border: 1px dashed #8c8f94;
-                    border-radius: 4px;
-                    color: #2271b1;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                .wcri-upload-button:hover {
-                    background: #e0e0e0;
-                    border-color: #2271b1;
-                }
-                .wcri-preview-container {
-                    margin-top: 10px;
-                    display: none;
-                    text-align: center;
-                }
-                .wcri-preview-image {
-                    max-width: 100%;
-                    max-height: 200px;
-                    border-radius: 4px;
-                    margin-top: 10px;
-                    display: block;
-                }
-                .wcri-remove-image {
-                    display: inline-block;
-                    margin-top: 5px;
-                    color: #d63638;
-                    text-decoration: none;
-                    font-size: 12px;
-                }
-                .wcri-remove-image:hover {
-                    text-decoration: underline;
-                }
-                .wcri-upload-hint {
-                    font-size: 12px;
-                    color: #666;
-                    margin: 10px 0 5px;
-                    font-style: italic;
-                    display: block;
-                }
-                @media (max-width: 768px) {
-                    .wcri-upload-container {
-                        flex-direction: column;
-                    }
-                    .wcri-upload-field {
-                        min-width: 100%;
-                    }
-                }
-            </style>
             <div class="wcri-upload-container">
                 <?php if ($avatar_enabled) : ?>
                 <div class="wcri-upload-field comment-form-avatar-upload">

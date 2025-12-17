@@ -92,3 +92,9 @@ msgstr "Avatar ID"
 #: includes/class-wcri-avatar-upload.php:187
 msgid "Avatar URL"
 msgstr "Avatar URL"
+
+msgid "Your Photo"
+msgstr "Ditt bilde"
+
+msgid "Product Image"
+msgstr "Produktbilde"
