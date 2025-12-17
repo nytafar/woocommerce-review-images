@@ -126,31 +126,36 @@
     line-height: 1.2;
   }
 }
+
 /* Accordion Review Form */
 .wcri-accordion-wrapper.wcri-closed #commentform {
-    display: none;
+  display: none;
+}
+
+.wcri-accordion-wrapper.wcri-open #commentform {
+  display: block;
 }
 
 .wcri-accordion-title {
-    cursor: pointer;
-    position: relative;
-    padding-right: 20px;
-    display: inline-block;
+  cursor: pointer;
+  position: relative;
+  padding-right: 20px;
+  display: inline-block;
 }
 
 .wcri-accordion-title::after {
-    content: "";
-    border: solid #666;
-    border-width: 0 2px 2px 0;
-    display: inline-block;
-    padding: 3px;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-70%) rotate(45deg);
-    transition: transform 0.2s ease;
+  content: "";
+  border: solid #666;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.2s ease;
 }
 
 .wcri-accordion-wrapper.wcri-open .wcri-accordion-title::after {
-    transform: translateY(-30%) rotate(-135deg);
+  transform: translateY(-30%) rotate(-135deg);
 }

@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                         'wcri-styles',
                         plugins_url( 'assets/css/woocommerce-review-images.css', __FILE__ ),
                         array(),
-                        '1.2.1'
+                        '1.2.3'
                     );
                 }
 
@@ -146,7 +146,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                     'wcri-toggle',
                     plugins_url( 'assets/js/wcri-toggle.js', __FILE__ ),
                     array(), // No dependencies
-                    '1.2.1',
+                    '1.2.2',
                     true
                 );
             }
