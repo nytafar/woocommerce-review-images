@@ -13,7 +13,7 @@
  * Requires at least: 5.6
  * Requires PHP: 7.4
  * WC requires at least: 5.0
- * WC tested up to: 8.0
+ * WC tested up to: 10.7
  *
  * @package WooCommerce_Review_Images
  */
@@ -29,6 +29,15 @@ include_once( plugin_dir_path( __FILE__ ) . 'custom-review-meta.php' );
 // Include new avatar upload functionality
 include_once( plugin_dir_path( __FILE__ ) . 'includes/class-wcri-avatar-upload.php' );
 include_once( plugin_dir_path( __FILE__ ) . 'includes/class-wcri-avatar-display.php' );
+
+// Declare HPOS (custom order tables) compatibility. This plugin only works with
+// product reviews and avatars; it never reads or writes order data, so it is
+// safe under both legacy CPT and HPOS storage.
+add_action( 'before_woocommerce_init', function() {
+    if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+    }
+} );
 
 // Load text domain on plugins_loaded (standard WordPress hook)
 add_action( 'plugins_loaded', function() {
