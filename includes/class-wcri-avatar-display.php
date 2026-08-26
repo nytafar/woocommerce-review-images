@@ -106,51 +106,16 @@ class WC_Review_Images_Avatar_Display {
             $email = $comment->comment_author_email;
             
             if (!empty($email) && is_email($email)) {
-                // Use the existing has_gravatar check from Conditional_Woo_Gravatars
-                if (class_exists('Conditional_Woo_Gravatars')) {
-                    // Check if user has actual Gravatar
-                    if (!$this->has_gravatar($email)) {
-                        return ''; // Hide if no Gravatar and no custom avatar
-                    }
+                // Hide the default gravatar when the author has neither a custom
+                // upload nor a real Gravatar. Uses the shared wcri_has_gravatar() helper.
+                if (function_exists('wcri_has_gravatar') && !wcri_has_gravatar($email)) {
+                    return ''; // Hide if no Gravatar and no custom avatar
                 }
             }
         }
 
         // Return original avatar (Gravatar or default)
         return $avatar;
-    }
-
-    /**
-     * Check if a custom Gravatar exists for this email
-     * This mirrors the functionality from Conditional_Woo_Gravatars
-     * 
-     * @param string $email The email to check
-     * @return bool True if a custom Gravatar exists
-     */
-    private function has_gravatar($email) {
-        if (empty($email)) {
-            return false;
-        }
-
-        // Check cache first
-        $cache_key = 'wcri_has_gravatar_' . md5($email);
-        $cached_result = get_transient($cache_key);
-
-        if ($cached_result !== false) {
-            return $cached_result === 'yes';
-        }
-
-        // Make a HEAD request to Gravatar
-        $hash = md5(strtolower(trim($email)));
-        $uri = 'https://www.gravatar.com/avatar/' . $hash . '?d=404';
-
-        $response = wp_remote_head($uri);
-        $has_valid_avatar = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200;
-
-        // Cache result for 24 hours
-        set_transient($cache_key, $has_valid_avatar ? 'yes' : 'no', DAY_IN_SECONDS);
-
-        return $has_valid_avatar;
     }
 
     /**

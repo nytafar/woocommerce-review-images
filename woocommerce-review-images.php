@@ -70,16 +70,6 @@ add_action( 'plugins_loaded', function() {
             }
         }
     }
-
-    // Debug: Check if translations are loaded (remove in production)
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        add_action('wp_footer', function() {
-            $locale = function_exists('determine_locale') ? determine_locale() : get_locale();
-            $loaded = is_textdomain_loaded('woocommerce-review-images');
-            $test_translation = __('Choose Photo', 'woocommerce-review-images');
-            echo "<!-- WCRI Debug - Locale: $locale, Textdomain loaded: " . ($loaded ? 'Yes' : 'No') . ", Test translation: $test_translation -->";
-        });
-    }
 } );
 
 /**
@@ -147,7 +137,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                         'wcri-styles',
                         plugins_url( 'assets/css/woocommerce-review-images.css', __FILE__ ),
                         array(),
-                        '1.2.3'
+                        '1.2.1'
                     );
                 }
 
@@ -155,7 +145,7 @@ if ( ! class_exists( 'WC_Review_Images' ) && apply_filters( 'wcri_enable_review_
                     'wcri-toggle',
                     plugins_url( 'assets/js/wcri-toggle.js', __FILE__ ),
                     array(), // No dependencies
-                    '1.2.2',
+                    '1.2.1',
                     true
                 );
             }

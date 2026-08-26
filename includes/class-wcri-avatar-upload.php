@@ -94,50 +94,6 @@ class WC_Review_Images_Avatar_Upload {
     }
 
     /**
-     * Display avatar upload field in review form
-     */
-    public function display_avatar_upload_field() {
-        if (!is_product() || !comments_open()) {
-            return;
-        }
-
-        static $avatar_field_displayed = false;
-        if ($avatar_field_displayed) {
-            return;
-        }
-
-        /**
-         * Filter to enable/disable avatar upload functionality
-         * 
-         * @since 1.2.0
-         * @param bool $enabled Whether avatar upload is enabled. Default true.
-         */
-        if (!apply_filters('wcri_enable_avatar_upload', true)) {
-            return;
-        }
-
-        $default_label_text = __('Upload your profile photo (optional, max 1MB, JPG, PNG, GIF)', 'woocommerce-review-images');
-        
-        /**
-         * Filter the avatar upload field label text
-         * 
-         * @since 1.2.0
-         * @param string $default_label_text The default label text
-         * @param WP_Post|null $product The current product
-         */
-        $label_text = apply_filters('wcri_avatar_upload_field_label_text', $default_label_text, get_post());
-
-        echo '<p class="comment-form-avatar-upload">';
-        echo '<label for="wcri_avatar_upload">' . esc_html($label_text) . '</label>';
-        echo '<input type="file" id="wcri_avatar_upload" name="wcri_avatar_upload" accept="image/jpeg,image/png,image/gif,image/webp" />';
-        echo '</p>';
-        
-        wp_nonce_field('wcri_avatar_upload_action', 'wcri_avatar_upload_nonce');
-        
-        $avatar_field_displayed = true;
-    }
-
-    /**
      * Handle avatar upload during comment processing
      * 
      * @param array $commentdata Comment data array

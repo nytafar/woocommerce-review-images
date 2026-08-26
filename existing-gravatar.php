@@ -6,6 +6,39 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+if ( ! function_exists( 'wcri_has_gravatar' ) ) {
+    /**
+     * Check whether a real (non-default) Gravatar exists for an email address.
+     *
+     * Result is cached for 24 hours. Shared by the conditional-gravatar filter
+     * and the custom-avatar display so the HEAD-request logic lives in one place.
+     *
+     * @param string $email Email address to check.
+     * @return bool True if the address has a custom Gravatar.
+     */
+    function wcri_has_gravatar( $email ) {
+        if ( empty( $email ) ) {
+            return false;
+        }
+
+        $cache_key     = 'wcri_has_gravatar_' . md5( $email );
+        $cached_result = get_transient( $cache_key );
+        if ( $cached_result !== false ) {
+            return $cached_result === 'yes';
+        }
+
+        $hash = md5( strtolower( trim( $email ) ) );
+        $uri  = 'https://www.gravatar.com/avatar/' . $hash . '?d=404';
+
+        $response         = wp_remote_head( $uri );
+        $has_valid_avatar = ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200;
+
+        set_transient( $cache_key, $has_valid_avatar ? 'yes' : 'no', DAY_IN_SECONDS );
+
+        return $has_valid_avatar;
+    }
+}
+
 class Conditional_Woo_Gravatars {
 
     /**
@@ -14,38 +47,6 @@ class Conditional_Woo_Gravatars {
     public function __construct() {
         // Filter the get_avatar output
         add_filter('get_avatar', array($this, 'filter_woocommerce_gravatar'), 10, 6);
-    }
-
-    /**
-     * Check if a custom Gravatar exists for this email
-     * 
-     * @param string $email The email to check
-     * @return bool True if a custom Gravatar exists
-     */
-    private function has_gravatar($email) {
-        if (empty($email)) {
-            return false;
-        }
-
-        // Check cache first
-        $cache_key = 'wcri_has_gravatar_' . md5($email);
-        $cached_result = get_transient($cache_key);
-
-        if ($cached_result !== false) {
-            return $cached_result === 'yes';
-        }
-
-        // Make a HEAD request to Gravatar
-        $hash = md5(strtolower(trim($email)));
-        $uri = 'https://www.gravatar.com/avatar/' . $hash . '?d=404';
-
-        $response = wp_remote_head($uri);
-        $has_valid_avatar = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200;
-
-        // Cache result for 24 hours
-        set_transient($cache_key, $has_valid_avatar ? 'yes' : 'no', DAY_IN_SECONDS);
-
-        return $has_valid_avatar;
     }
 
     /**
@@ -96,7 +97,7 @@ class Conditional_Woo_Gravatars {
         }
 
         // Check if user has a custom gravatar. If not, preserve any incoming avatar (e.g., custom uploaded one)
-        if (!$this->has_gravatar($email)) {
+        if (!wcri_has_gravatar($email)) {
             return $avatar; // Keep existing avatar (may be empty if none, or custom if provided)
         }
     
