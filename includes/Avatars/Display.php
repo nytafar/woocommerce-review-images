@@ -76,7 +76,11 @@ final class Display
         if (apply_filters('kaupang/review-images/enable_conditional_gravatars', true)) {
             $email = $comment->comment_author_email;
 
-            if (!empty($email) && is_email($email) && !Gravatar::hasGravatar($email)) {
+            // No usable address means no Gravatar can exist, so the incoming
+            // default silhouette is exactly what must not survive. Testing
+            // hasGravatar() only when an email is present left that case
+            // rendering the mystery-man this plugin exists to suppress.
+            if (empty($email) || !is_email($email) || !Gravatar::hasGravatar($email)) {
                 return '';
             }
         }
