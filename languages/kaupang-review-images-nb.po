@@ -1,0 +1,168 @@
+# Norwegian Bokmål translation for WooCommerce Review Images
+# This file is distributed under the same license as the WooCommerce Review Images package.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Review Images 1.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-"
+"review-images\n"
+"POT-Creation-Date: 2026-09-01T13:40:40+00:00\n"
+"PO-Revision-Date: 2025-10-27T16:43:00+00:00\n"
+"Last-Translator: \n"
+"Language-Team: Norwegian Bokmål\n"
+"Language: nb_NO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
+"X-Domain: woocommerce-review-images\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+#: kaupang-review-images.php
+#, fuzzy
+msgid "Kaupang Review Images"
+msgstr "Endre bilde"
+
+#. Plugin URI of the plugin
+#: kaupang-review-images.php
+msgid "https://github.com/nytafar/kaupang-review-images"
+msgstr ""
+
+#. Description of the plugin
+#: kaupang-review-images.php
+msgid ""
+"Review image and avatar uploads for WooCommerce product reviews — customers "
+"attach a product photo and a profile picture to their review, stored as "
+"ordinary media attachments; conditional Gravatar loading keeps default "
+"avatars off the page. Part of the Kaupang suite."
+msgstr ""
+
+#. Author of the plugin
+#: kaupang-review-images.php
+msgid "Lasse Jellum"
+msgstr ""
+
+#. Author URI of the plugin
+#: kaupang-review-images.php
+msgid "https://jellum.net"
+msgstr ""
+
+#. translators: %s: review author name.
+#: includes/Avatars/Upload.php:119
+#, fuzzy, php-format
+msgid "Avatar for %s"
+msgstr "Avatar ID"
+
+#: includes/Avatars/Upload.php:179
+#, fuzzy
+msgid "Review Author Avatar"
+msgstr "Fjern avatar"
+
+#: includes/Avatars/Upload.php:193
+msgid "No custom avatar was uploaded with this review."
+msgstr ""
+
+#: includes/Avatars/Upload.php:204
+msgid "This custom avatar takes precedence over Gravatar."
+msgstr ""
+
+#: includes/Avatars/Upload.php:206
+msgid ""
+"Avatar data found, but the image could not be displayed. It might have been "
+"deleted from the media library."
+msgstr ""
+
+#: includes/Reviews/Images.php:97
+#, fuzzy
+msgid "Kaupang Review Images requires WooCommerce to be installed and active."
+msgstr ""
+"WooCommerce Review Images plugin krever at WooCommerce er installert og "
+"aktivt."
+
+#: includes/Reviews/Images.php:115
+msgid "Your Photo"
+msgstr "Ditt bilde"
+
+#: includes/Reviews/Images.php:116
+msgid "Product Image"
+msgstr "Produktbilde"
+
+#: includes/Reviews/Images.php:131 includes/Reviews/Images.php:169
+msgid "Choose Photo"
+msgstr "Velg bilde"
+
+#: includes/Reviews/Images.php:133
+msgid "Upload your profile picture"
+msgstr "Last opp profilbildet ditt"
+
+#: includes/Reviews/Images.php:135
+msgid "Avatar preview"
+msgstr "Forhåndsvisning av avatar"
+
+#: includes/Reviews/Images.php:136 includes/Reviews/Images.php:158
+msgid "Remove"
+msgstr "Fjern"
+
+#: includes/Reviews/Images.php:153 includes/Reviews/Images.php:170
+msgid "Choose Image"
+msgstr "Velg bilde"
+
+#: includes/Reviews/Images.php:155
+msgid "Share a photo of the product"
+msgstr "Del et bilde av produktet"
+
+#: includes/Reviews/Images.php:157
+msgid "Review image preview"
+msgstr "Forhåndsvisning av anmeldelsesbilde"
+
+#: includes/Reviews/Images.php:167
+msgid "Change Photo"
+msgstr "Endre bilde"
+
+#: includes/Reviews/Images.php:168
+msgid "Change Image"
+msgstr "Endre bilde"
+
+#: includes/Reviews/Images.php:319 includes/Reviews/Images.php:325
+msgid "Image"
+msgstr ""
+
+#: includes/Reviews/Images.php:346
+msgid "N/A"
+msgstr ""
+
+#: includes/Reviews/Images.php:356
+#, fuzzy
+msgid "Review Image"
+msgstr "Forhåndsvisning av anmeldelsesbilde"
+
+#: includes/Reviews/Images.php:370
+msgid "No image was uploaded with this review."
+msgstr ""
+
+#: includes/Reviews/Images.php:379
+msgid ""
+"Image data found, but the image could not be displayed. It might have been "
+"deleted from the media library."
+msgstr ""
+
+#~ msgid "Upload your profile photo (optional, max 1MB, JPG, PNG, GIF)"
+#~ msgstr "Last opp profilbildet ditt (valgfritt, maks 1MB, JPG, PNG, GIF)"
+
+#~ msgid "Avatar"
+#~ msgstr "Avatar"
+
+#~ msgid "No avatar uploaded"
+#~ msgstr "Ingen avatar lastet opp"
+
+#~ msgid "View Avatar"
+#~ msgstr "Se avatar"
+
+#~ msgid "Avatar removed successfully"
+#~ msgstr "Avatar fjernet"
+
+#~ msgid "Could not remove avatar"
+#~ msgstr "Kunne ikke fjerne avatar"
+
+#~ msgid "Avatar URL"
+#~ msgstr "Avatar URL"

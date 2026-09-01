@@ -1,14 +1,14 @@
-# WooCommerce Review Images
+# Kaupang Review Images
 
-[![WooCommerce Review Images](https://img.shields.io/badge/WooCommerce-Review%20Images-7f54b3.svg)](https://wordpress.org/plugins/woocommerce-review-images/)
-[![Version 1.2.1](https://img.shields.io/badge/Version-1.2.1-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
+[![Kaupang Review Images](https://img.shields.io/badge/WooCommerce-Review%20Images-7f54b3.svg)](https://wordpress.org/plugins/kaupang-review-images/)
+[![Version 1.2.1](https://img.shields.io/badge/Version-1.2.1-brightgreen.svg)](https://github.com/nytafar/kaupang-review-images/releases)
 [![WooCommerce 5.0+](https://img.shields.io/badge/WooCommerce-5.0+-a46497.svg)](https://woocommerce.com/)
 [![PHP 7.4+](https://img.shields.io/badge/PHP-7.4+-8892BF.svg)](https://php.net/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 Enhance your WooCommerce product reviews by allowing customers to upload images with their reviews. This plugin provides a seamless way to collect and display user-generated content, helping build trust and engagement on your e-commerce site.
 
-![WooCommerce Review Images](assets/screenshot-1.png)
+![Kaupang Review Images](assets/screenshot-1.png)
 
 ## Features
 
@@ -30,7 +30,7 @@ Enhance your WooCommerce product reviews by allowing customers to upload images 
 
 ## Installation
 
-1. Upload the `woocommerce-review-images` folder to the `/wp-content/plugins/` directory
+1. Upload the `kaupang-review-images` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. The image upload field will automatically appear in the product review form
 
@@ -50,12 +50,12 @@ Control how Gravatars are displayed in reviews:
 
 ```php
 // Change Gravatar size (default: 200px)
-add_filter('wcri_gravatar_base_size', function() {
+add_filter('kaupang/review-images/gravatar_base_size', function() {
     return 250; // Set your preferred size in pixels
 });
 
 // Disable Gravatar functionality
-add_filter('wcri_enable_conditional_gravatars', '__return_false');
+add_filter('kaupang/review-images/enable_conditional_gravatars', '__return_false');
 ```
 
 ## Usage
@@ -79,103 +79,103 @@ add_filter('wcri_enable_conditional_gravatars', '__return_false');
 
 ### Avatar Upload Filters
 
-#### `wcri_enable_avatar_upload`
+#### `kaupang/review-images/enable_avatar_upload`
 Toggle the avatar upload functionality.
 
 ```php
 // Disable avatar upload functionality
-add_filter('wcri_enable_avatar_upload', '__return_false');
+add_filter('kaupang/review-images/enable_avatar_upload', '__return_false');
 
 // Or conditionally enable
-add_filter('wcri_enable_avatar_upload', function($enabled) {
+add_filter('kaupang/review-images/enable_avatar_upload', function($enabled) {
     return is_user_logged_in(); // Only allow logged-in users to upload avatars
 });
 ```
 
-#### `wcri_avatar_upload_field_label_text`
+#### `kaupang/review-images/avatar_upload_field_label`
 Customize the avatar upload field label text.
 
 ```php
-add_filter('wcri_avatar_upload_field_label_text', function($default_text, $product) {
+add_filter('kaupang/review-images/avatar_upload_field_label', function($default_text, $product) {
     return __('Upload your photo (optional)', 'your-text-domain');
 }, 10, 2);
 ```
 
-#### `wcri_avatar_base_size`
+#### `kaupang/review-images/avatar_base_size`
 Set the base size for custom avatars in pixels.
 
 ```php
 // Set base avatar size to 96px (will serve 96px and 192px for retina)
-add_filter('wcri_avatar_base_size', function() {
+add_filter('kaupang/review-images/avatar_base_size', function() {
     return 96; // Default is 120px
 });
 ```
 
-#### `wcri_custom_avatar_html`
+#### `kaupang/review-images/custom_avatar_html`
 Filter the custom avatar HTML output.
 
 ```php
-add_filter('wcri_custom_avatar_html', function($html, $comment_id, $avatar_id, $size) {
+add_filter('kaupang/review-images/custom_avatar_html', function($html, $comment_id, $avatar_id, $size) {
     // Modify avatar HTML as needed
     return $html;
 }, 10, 4);
 ```
 
-#### `wcri_display_avatar_in_meta`
+#### `kaupang/review-images/display_avatar_in_meta`
 Control whether to display avatar in review meta section.
 
 ```php
 // Hide avatar in review meta
-add_filter('wcri_display_avatar_in_meta', '__return_false');
+add_filter('kaupang/review-images/display_avatar_in_meta', '__return_false');
 ```
 
 ### Review Image Filters
 
-#### 1. `wcri_enable_review_images`
+#### 1. `kaupang/review-images/enable_review_images`
 Toggle the entire review images functionality.
 
 ```php
 // Disable review images functionality
-add_filter('wcri_enable_review_images', '__return_false');
+add_filter('kaupang/review-images/enable_review_images', '__return_false');
 
 // Or conditionally enable
-add_filter('wcri_enable_review_images', function($enabled) {
+add_filter('kaupang/review-images/enable_review_images', function($enabled) {
     return is_product() && !is_user_logged_in(); // Only for guests on product pages
 });
 ```
 
-#### 2. `wcri_upload_field_label_text`
+#### 2. `kaupang/review-images/upload_field_label`
 Customize the upload field label text.
 
 ```php
-add_filter('wcri_upload_field_label_text', function($default_text, $product) {
+add_filter('kaupang/review-images/upload_field_label', function($default_text, $product) {
     // $product is the current product post object
     return sprintf(
-        __('Upload an image of your %s (max 5MB, JPG, PNG, GIF)', 'woocommerce-review-images'),
+        __('Upload an image of your %s (max 5MB, JPG, PNG, GIF)', 'kaupang-review-images'),
         $product->get_name()
     );
 }, 10, 2);
 ```
 
-#### 3. `wcri_enable_conditional_gravatars`
+#### 3. `kaupang/review-images/enable_conditional_gravatars`
 Optimize Gravatar loading by only loading Gravatars for users who have custom avatars.
 
 ```php
 // Disable conditional Gravatar loading (show all Gravatars, even default ones)
-add_filter('wcri_enable_conditional_gravatars', '__return_false');
+add_filter('kaupang/review-images/enable_conditional_gravatars', '__return_false');
 
 // Or conditionally enable based on user role
-add_filter('wcri_enable_conditional_gravatars', function() {
+add_filter('kaupang/review-images/enable_conditional_gravatars', function() {
     return current_user_can('edit_products'); // Only optimize for non-editors
 });
 ```
 
-#### 4. `wcri_gravatar_base_size`
+#### 4. `kaupang/review-images/gravatar_base_size`
 Set the base width for Gravatars in pixels. The plugin will automatically generate both standard and retina (2x) versions.
 
 ```php
 // Set base Gravatar size to 96px (will serve 96px and 192px for retina)
-add_filter('wcri_gravatar_base_size', function() {
+add_filter('kaupang/review-images/gravatar_base_size', function() {
     return 96; // Default is 200px (serves 200px and 400px)
 });
 ```
@@ -208,11 +208,11 @@ add_action('woocommerce_review_meta_author', function() {
 - **NEW**: Separate modular classes for avatar upload and display
 - **IMPROVED**: Better code organization with dedicated includes directory
 - **IMPROVED**: Enhanced extensibility with new filters and hooks
-- Added `wcri_enable_avatar_upload` filter
-- Added `wcri_avatar_upload_field_label_text` filter
-- Added `wcri_avatar_base_size` filter
-- Added `wcri_custom_avatar_html` filter
-- Added `wcri_display_avatar_in_meta` filter
+- Added `kaupang/review-images/enable_avatar_upload` filter
+- Added `kaupang/review-images/avatar_upload_field_label` filter
+- Added `kaupang/review-images/avatar_base_size` filter
+- Added `kaupang/review-images/custom_avatar_html` filter
+- Added `kaupang/review-images/display_avatar_in_meta` filter
 
 ### 1.1.1 - 2025-05-22
 - Fixed critical bug in conditional Gravatar display
@@ -257,7 +257,7 @@ This update includes important security improvements and new features. Please te
 
 ## Support
 
-For support, please [open an issue](https://github.com/nytafar/woocommerce-review-images/issues) on GitHub.
+For support, please [open an issue](https://github.com/nytafar/kaupang-review-images/issues) on GitHub.
 
 ## License
 
