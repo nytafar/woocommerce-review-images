@@ -6,3 +6,4 @@ node_modules/
 # prefer it over the .mo, so an untracked one regenerated from an older .mo
 # silently shadows fresh translations. Ship it in lockstep instead:
 #   msgfmt -o X.mo X.po && wp i18n make-php languages
+.DS_Store
