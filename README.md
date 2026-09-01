@@ -153,7 +153,7 @@ data, not presentation.
 
 ### Attributes
 
-All eleven, with the defaults from `block/block.json`:
+All twelve, with the defaults from `block/block.json`:
 
 | Attribute | Type | Default | | Attribute | Type | Default |
 |---|---|---|---|---|---|---|
@@ -162,10 +162,43 @@ All eleven, with the defaults from `block/block.json`:
 | `showBody` | boolean | `true` | | `showVerified` | boolean | **`false`** |
 | `showReviewImages` | boolean | **`false`** | | `showDate` | boolean | `true` |
 | `showRating` | boolean | **`false`** | | `showProductName` | boolean | `true` |
-| | | | | `showProductImage` | boolean | **`false`** |
+| `expandable` | boolean | **`false`** | | `showProductImage` | boolean | **`false`** |
 
 Defaults are uniform — they do not vary by context. The render callback reads them back off the
 block registry, so `block.json` is the only place they are defined.
+
+### Read more / Les mer
+
+`expandable` shortens a long review to a few lines and adds a button that expands it. It exists
+because Quote has no length ceiling of its own: a 1500-character review will happily swallow a
+hero.
+
+The order of fallbacks matters more than the feature does:
+
+| | |
+|---|---|
+| **No JavaScript** | full text, no button, nothing clamped |
+| **JavaScript, short review** | full text, no button — the clamp never bit, so offering to expand would be a lie |
+| **JavaScript, long review** | clamped text plus a real `<button>` |
+
+PHP renders the whole review and a `hidden` button; `block/view.js` compares `scrollHeight` against
+`clientHeight` and only then unhides the button and sets `data-expanded="false"` on the root, which
+is what the clamp is keyed on. Nobody is ever left with truncated text and no way to reach the rest.
+
+- The `<button>` is a real button — keyboard-operable, `aria-expanded` flips, `aria-controls` points
+  at that instance's `<blockquote>`. Ids come from `wp_unique_id()`, because the same review may
+  legitimately appear twice on one page.
+- Both labels ship as `data-label-more` / `data-label-less`, translated server-side.
+- Collapsing from below the fold scrolls the review back into view, rather than dumping the reader
+  wherever the page happened to shorten to.
+- Line counts are `--kaupang-review-body-lines`: `6` in Quote, `4` in Compact.
+- **Under `None` the button appears but nothing clamps** — the clamp lives in the variations, and
+  `None` ships no CSS. Supply the clamp in the theme, or use a variation. The button hides itself
+  when nothing overflows, so it fails quietly rather than confusingly.
+
+`block/view.js` is a plain file with no build step — the same convention as
+`assets/js/review-form-toggle.js` — registered as `viewScript`, so WordPress loads it only on pages
+that actually contain the block.
 
 ### Class contract
 

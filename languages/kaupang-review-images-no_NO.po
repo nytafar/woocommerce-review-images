@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: Kaupang Review Images 2.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/kaupang-review-"
 "images\n"
-"POT-Creation-Date: 2026-09-01T17:41:55+00:00\n"
+"POT-Creation-Date: 2026-09-01T19:07:58+00:00\n"
 "PO-Revision-Date: 2025-10-27T16:43:00+00:00\n"
 "Last-Translator: \n"
 "Language-Team: Norwegian\n"
@@ -51,7 +51,7 @@ msgid "https://jellum.net"
 msgstr ""
 
 #. translators: %s: review author name.
-#: includes/Avatars/Upload.php:93 includes/Block/CuratedReview.php:215
+#: includes/Avatars/Upload.php:93 includes/Block/CuratedReview.php:248
 #, php-format
 msgid "Avatar for %s"
 msgstr "Avatar for %s"
@@ -76,11 +76,19 @@ msgstr ""
 "Fant avatardata, men bildet kunne ikke vises. Det kan ha blitt slettet fra "
 "mediebiblioteket."
 
-#: includes/Block/CuratedReview.php:269
+#: includes/Block/CuratedReview.php:120
+msgid "Read more"
+msgstr "Les mer"
+
+#: includes/Block/CuratedReview.php:121
+msgid "Show less"
+msgstr "Vis mindre"
+
+#: includes/Block/CuratedReview.php:302
 msgid "Pick a product and a review in the block settings."
 msgstr "Velg et produkt og en omtale i blokkinnstillingene."
 
-#: includes/Block/CuratedReview.php:270
+#: includes/Block/CuratedReview.php:303
 msgid ""
 "That review is not available any more — it may have been deleted, "
 "unapproved, or marked as spam."
@@ -181,25 +189,25 @@ msgstr "Henter omtaler …"
 msgid "This product has no approved reviews yet."
 msgstr "Dette produktet har ingen godkjente omtaler ennå."
 
-#: block/src/index.js:218
+#: block/src/index.js:219
 msgid "Review source"
 msgstr "Kilde for omtalen"
 
-#: block/src/index.js:221 block/src/index.js:337
+#: block/src/index.js:222 block/src/index.js:350
 msgid "Product"
 msgstr "Produkt"
 
-#: block/src/index.js:222
+#: block/src/index.js:223
 msgid "Type to search all products."
 msgstr "Skriv for å søke i alle produkter."
 
-#: block/src/index.js:249
+#: block/src/index.js:250
 msgid ""
 "Your session has expired — save your work, reload the editor, and sign in "
 "again."
 msgstr ""
 
-#: block/src/index.js:258
+#: block/src/index.js:259
 msgid ""
 "You need review-moderation permission to pick a review — ask an "
 "administrator."
@@ -207,63 +215,71 @@ msgstr ""
 "Du må ha tilgang til å moderere omtaler for å kunne velge en. Spør en "
 "administrator."
 
-#: block/src/index.js:268
+#: block/src/index.js:269
 msgid "The review list could not be loaded."
 msgstr "Klarte ikke å hente listen over omtaler."
 
-#: block/src/index.js:282
+#: block/src/index.js:283
 msgid "Review"
 msgstr "Omtale"
 
-#: block/src/index.js:297
+#: block/src/index.js:298
 msgid "Content"
 msgstr "Innhold"
 
-#: block/src/index.js:302
+#: block/src/index.js:303
 msgid "Review text"
 msgstr "Omtaletekst"
 
-#: block/src/index.js:306
+#: block/src/index.js:308
+msgid "Shorten with a Read more link"
+msgstr "Forkort med en «Les mer»-lenke"
+
+#: block/src/index.js:312
+msgid "Only appears when the review is actually long enough to be cut off."
+msgstr "Vises bare når omtalen faktisk er lang nok til å bli avkortet."
+
+#: block/src/index.js:319
 msgid "Customer photos"
 msgstr "Kundebilder"
 
-#: block/src/index.js:310
+#: block/src/index.js:323
 msgid "Star rating"
 msgstr "Stjernevurdering"
 
-#: block/src/index.js:315
+#: block/src/index.js:328
 msgid "Attribution"
 msgstr "Avsender"
 
-#: block/src/index.js:320
+#: block/src/index.js:333
 msgid "Reviewer name"
 msgstr "Kundenavn"
 
-#: block/src/index.js:324
+#: block/src/index.js:337
 msgid "Avatar"
 msgstr "Avatar"
 
-#: block/src/index.js:328
+#: block/src/index.js:341
 msgid "Verified-owner badge"
 msgstr "Merke for verifisert kjøp"
 
-#: block/src/index.js:332
+#: block/src/index.js:345
 msgid "Date"
 msgstr "Dato"
 
-#: block/src/index.js:342
+#: block/src/index.js:355
 msgid "Product name"
 msgstr "Produktnavn"
 
-#: block/src/index.js:346
+#: block/src/index.js:359
 msgid "Product image"
 msgstr "Produktbilde"
 
-#: block/src/index.js:359
+#: block/src/index.js:372
 msgid "Curated Review"
 msgstr "Utvalgt omtale"
 
-#: block/src/index.js:360
+#: block/src/index.js:373
 msgid "Pick a product, then one of its reviews, in the block settings sidebar."
 msgstr ""
 "Velg et produkt, og deretter en av omtalene, i sidepanelet for "

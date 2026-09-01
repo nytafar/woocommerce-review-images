@@ -23,6 +23,10 @@
       "type": "boolean",
       "default": true
     },
+    "expandable": {
+      "type": "boolean",
+      "default": false
+    },
     "showReviewImages": {
       "type": "boolean",
       "default": false
@@ -67,5 +71,6 @@
       "label": "Compact"
     }
   ],
-  "style": "file:./build/style-index.css"
+  "style": "file:./build/style-index.css",
+  "viewScript": "file:./view.js"
 }

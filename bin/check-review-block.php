@@ -155,6 +155,44 @@ try {
         $missing ? 'missing: ' . implode(', ', $missing) : wp_json_encode($order)
     );
 
+    // --- read more ----------------------------------------------------------
+    $plain = CuratedReview::render(kri_all_on($id));
+    kri_check('no expand button unless asked for', strpos($plain, 'kaupang-review__more') === false);
+    kri_check('no data-expandable unless asked for', strpos($plain, 'data-expandable') === false);
+
+    $expand = CuratedReview::render(array_merge(kri_all_on($id), ['expandable' => true]));
+    kri_check('expandable marks the root', strpos($expand, 'data-expandable') !== false);
+    kri_check('expand button ships hidden', (bool) preg_match('#<button[^>]*kaupang-review__more[^>]*\bhidden\b#', $expand), $expand);
+    kri_check('expand button starts collapsed', strpos($expand, 'aria-expanded="false"') !== false);
+
+    // aria-controls must point at THIS instance's body, and two instances on one
+    // page must not collide -- the same review can legitimately appear twice.
+    preg_match('#<blockquote class="kaupang-review__body" id="([^"]+)"#', $expand, $bodyIdMatch);
+    preg_match('#<button[^>]*aria-controls="([^"]+)"#', $expand, $controlsMatch);
+    kri_check(
+        'aria-controls points at this instance\'s body',
+        !empty($bodyIdMatch[1]) && ($bodyIdMatch[1] ?? null) === ($controlsMatch[1] ?? null),
+        wp_json_encode([$bodyIdMatch[1] ?? null, $controlsMatch[1] ?? null])
+    );
+
+    $second = CuratedReview::render(array_merge(kri_all_on($id), ['expandable' => true]));
+    preg_match('#<blockquote class="kaupang-review__body" id="([^"]+)"#', $second, $secondIdMatch);
+    kri_check(
+        'a second instance of the same review gets its own id',
+        !empty($secondIdMatch[1]) && $secondIdMatch[1] !== ($bodyIdMatch[1] ?? null),
+        wp_json_encode([$bodyIdMatch[1] ?? null, $secondIdMatch[1] ?? null])
+    );
+
+    kri_check(
+        'both label states travel with the button',
+        strpos($expand, 'data-label-more=') !== false && strpos($expand, 'data-label-less=') !== false
+    );
+
+    kri_check(
+        'expandable is inert when the body is hidden',
+        strpos(CuratedReview::render(array_merge(kri_all_on($id), ['expandable' => true, 'showBody' => false])), 'kaupang-review__more') === false
+    );
+
     // --- render: empty states ----------------------------------------------
     kri_check('deleted id renders empty on the frontend', CuratedReview::render(['reviewId' => 999999999]) === '');
     kri_check('id 0 renders empty on the frontend', CuratedReview::render(['reviewId' => 0]) === '');

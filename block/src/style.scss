@@ -71,6 +71,25 @@
 		line-height: 1;
 	}
 
+	// A <button> carries UA chrome that would read as a form control in the
+	// middle of a testimonial. Stripping it back to text is structure; what the
+	// text then looks like -- underline, colour, weight -- is the theme's.
+	.kaupang-review__more {
+		appearance: none;
+		background: none;
+		border: 0;
+		margin: 0;
+		padding: 0;
+		font: inherit;
+		color: inherit;
+		cursor: pointer;
+		// A button centres its label and, as a stretched flex item, would centre
+		// it across the whole review. It is meant to read as a line of text
+		// following the quote, and to be no wider than its own words.
+		text-align: start;
+		align-self: start;
+	}
+
 	.kaupang-review__avatar {
 		flex: none;
 		inline-size: var(--kaupang-review-avatar-size);
@@ -145,6 +164,7 @@
 	--kaupang-review-body-size: 1.35em;
 	--kaupang-review-measure: 34ch;
 	--kaupang-review-meta-size: 0.875em;
+	--kaupang-review-body-lines: 6;
 
 	display: flex;
 	flex-direction: column;
@@ -156,6 +176,16 @@
 		// A measure, not a width: long testimonials stay readable, short ones
 		// do not get stretched.
 		max-inline-size: var(--kaupang-review-measure);
+	}
+
+	// Only ever set by block/view.js, and only after it has confirmed the text
+	// actually overflows. A reader without JS gets the whole review.
+	&[data-expanded="false"] .kaupang-review__body {
+		display: -webkit-box;
+		-webkit-line-clamp: var(--kaupang-review-body-lines);
+		line-clamp: var(--kaupang-review-body-lines);
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
 
 	.kaupang-review__author {
@@ -226,21 +256,30 @@
 		order: 3;
 		flex-basis: 100%;
 		line-height: 1.4;
-		// Clamp rather than truncate with an ellipsis in markup: the full text
-		// stays in the DOM for search and for anyone reading it aloud.
-		display: -webkit-box;
-		-webkit-line-clamp: var(--kaupang-review-body-lines);
-		line-clamp: var(--kaupang-review-body-lines);
-		-webkit-box-orient: vertical;
-		overflow: hidden;
 
 		p {
 			margin: 0;
 		}
 	}
 
-	.kaupang-review__images {
+	// Compact clamps by default -- that is the whole point of it -- but yields
+	// the moment view.js expands it. Clamp rather than truncate in markup: the
+	// full text stays in the DOM for search and for anyone reading it aloud.
+	&:not([data-expanded="true"]) .kaupang-review__body {
+		display: -webkit-box;
+		-webkit-line-clamp: var(--kaupang-review-body-lines);
+		line-clamp: var(--kaupang-review-body-lines);
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.kaupang-review__more {
 		order: 4;
+		flex-basis: 100%;
+	}
+
+	.kaupang-review__images {
+		order: 5;
 		flex-basis: 100%;
 	}
 
@@ -250,7 +289,7 @@
 	}
 
 	.kaupang-review__product {
-		order: 5;
+		order: 6;
 		flex-basis: 100%;
 		font-size: 0.875em;
 	}

@@ -102,11 +102,36 @@ final class CuratedReview
         // text extraction.
         $out = '';
 
+        $expandable = $a['showBody'] && $a['expandable'];
+
         if ($a['showBody']) {
             $cite = $permalink ? ' cite="' . esc_url($permalink) . '"' : '';
-            $out .= '<blockquote class="kaupang-review__body"' . $cite . '>'
+            // Unique per instance, not per review: the same review can legitimately
+            // appear more than once on a page, and duplicate ids would point every
+            // button at the first one.
+            $bodyId = $expandable ? wp_unique_id('kaupang-review-body-') : '';
+            $id     = $bodyId ? ' id="' . esc_attr($bodyId) . '"' : '';
+
+            $out .= '<blockquote class="kaupang-review__body"' . $id . $cite . '>'
                 . wp_kses_post(apply_filters('comment_text', get_comment_text($comment), $comment))
                 . '</blockquote>';
+
+            if ($expandable) {
+                $more = __('Read more', 'kaupang-review-images');
+                $less = __('Show less', 'kaupang-review-images');
+
+                // Rendered hidden, and block/view.js unhides it only once it has
+                // confirmed the text is actually clamped. Without JS the reader
+                // gets the full review and no button, rather than a truncated
+                // review and no way to reach the rest.
+                $out .= sprintf(
+                    '<button type="button" class="kaupang-review__more" aria-expanded="false" aria-controls="%s" data-label-more="%s" data-label-less="%s" hidden>%s</button>',
+                    esc_attr($bodyId),
+                    esc_attr($more),
+                    esc_attr($less),
+                    esc_html($more)
+                );
+            }
         }
 
         if ($a['showReviewImages'] && $imageIds) {
@@ -186,13 +211,21 @@ final class CuratedReview
         // State attributes render regardless of their show* toggle: a hidden
         // rating still exposes data-rating, so the theme can hang the cascade
         // on state it cannot see.
-        $wrapper = get_block_wrapper_attributes([
+        $wrapperAttributes = [
             'class'           => 'kaupang-review',
             'data-review-id'  => (string) $commentId,
             'data-rating'     => (string) $rating,
             'data-verified'   => $verified ? '1' : '0',
             'data-has-images' => $imageIds ? '1' : '0',
-        ]);
+        ];
+
+        // Presence, not a value: the CSS keys the clamp on [data-expandable],
+        // and block/view.js only looks at roots that carry it.
+        if ($expandable) {
+            $wrapperAttributes['data-expandable'] = '';
+        }
+
+        $wrapper = get_block_wrapper_attributes($wrapperAttributes);
 
         return '<article ' . $wrapper . '>' . $out . '</article>';
     }

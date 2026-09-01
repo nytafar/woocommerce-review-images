@@ -202,10 +202,11 @@ function Edit( { attributes, setAttributes } ) {
 		);
 	}
 
-	const toggle = ( attribute, label ) => (
+	const toggle = ( attribute, label, help ) => (
 		<ToggleControl
 			__nextHasNoMarginBottom
 			label={ label }
+			help={ help }
 			checked={ !! attributes[ attribute ] }
 			onChange={ ( value ) => setAttributes( { [ attribute ]: value } ) }
 		/>
@@ -301,6 +302,18 @@ function Edit( { attributes, setAttributes } ) {
 						'showBody',
 						__( 'Review text', 'kaupang-review-images' )
 					) }
+					{ attributes.showBody &&
+						toggle(
+							'expandable',
+							__(
+								'Shorten with a Read more link',
+								'kaupang-review-images'
+							),
+							__(
+								'Only appears when the review is actually long enough to be cut off.',
+								'kaupang-review-images'
+							)
+						) }
 					{ toggle(
 						'showReviewImages',
 						__( 'Customer photos', 'kaupang-review-images' )
