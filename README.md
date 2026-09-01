@@ -301,8 +301,8 @@ Fix after a fresh install:
 find node_modules/.bin -maxdepth 1 -type l -exec chmod +x {} \;
 ```
 
-`node_modules/` and `languages/*.l10n.php` are gitignored; the latter is a cache
-performant-translations regenerates from the `.mo` on every load.
+`node_modules/` is gitignored. `languages/*.l10n.php` files are committed; WP 6.5+
+prefers them over the `.mo` and an untracked stale cache silently shadows updated translations.
 
 ## Verification
 

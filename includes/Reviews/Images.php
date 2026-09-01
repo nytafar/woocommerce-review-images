@@ -289,7 +289,7 @@ final class Images
         $imageIds = self::getImageIds((int) $comment->comment_ID);
 
         foreach ($imageIds as $imageId) {
-            $html = wp_get_attachment_image($imageId, 'medium', false, ['style' => 'height:auto;width:100%;;']);
+            $html = wp_get_attachment_image($imageId, 'medium', false, ['style' => 'height:auto;width:100%;']);
             if ($html) {
                 echo $html;
             }
