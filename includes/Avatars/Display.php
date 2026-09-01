@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace Kaupang\ReviewImages\Avatars;
 
+use Kaupang\ReviewImages\Support\Comments;
+
 defined('ABSPATH') || exit;
 
 final class Display
@@ -52,28 +54,26 @@ final class Display
      */
     public function displayCustomAvatar($avatar, $idOrEmail, $size, $default, $alt, $args = [])
     {
-        if (!function_exists('is_product') || !is_product()) {
+        // ponytail: admin keeps WordPress's own avatars. getCustomAvatarHtml
+        // pins width/height to avatar_base_size (120) for retina crispness on
+        // the frontend, which would land 120px images in the 32px comment-list
+        // column. Honour $size here instead if admin avatars are ever wanted.
+        if (is_admin()) {
             return $avatar;
         }
 
-        $comment = null;
-
-        if (is_object($idOrEmail) && isset($idOrEmail->comment_ID)) {
-            $comment = $idOrEmail;
-        } elseif (is_numeric($idOrEmail)) {
-            $possible = get_comment($idOrEmail);
-            if ($possible && isset($possible->comment_ID)) {
-                $comment = $possible;
-            }
+        $comment = Comments::productReview($idOrEmail);
+        if (!$comment) {
+            return $avatar;
         }
 
-        if ($comment && Upload::hasCustomAvatar((int) $comment->comment_ID)) {
+        if (Upload::hasCustomAvatar((int) $comment->comment_ID)) {
             return self::getCustomAvatarHtml((int) $comment->comment_ID, $size, $alt);
         }
 
         // No custom avatar: hide the default silhouette when the author has no
         // real Gravatar either.
-        if ($comment && apply_filters('kaupang/review-images/enable_conditional_gravatars', true)) {
+        if (apply_filters('kaupang/review-images/enable_conditional_gravatars', true)) {
             $email = $comment->comment_author_email;
 
             if (!empty($email) && is_email($email) && !Gravatar::hasGravatar($email)) {

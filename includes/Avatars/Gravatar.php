@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Kaupang\ReviewImages\Avatars;
 
+use Kaupang\ReviewImages\Support\Comments;
+
 defined('ABSPATH') || exit;
 
 final class Gravatar
@@ -71,27 +73,22 @@ final class Gravatar
      */
     public function filterWoocommerceGravatar($avatar, $idOrEmail, $size, $default, $alt, $args = [])
     {
-        if (!function_exists('is_product') || !is_product()) {
+        // See Display::displayCustomAvatar() for why admin is left alone.
+        if (is_admin()) {
             return $avatar;
         }
 
-        // A custom uploaded avatar already won — leave it alone.
+        $comment = Comments::productReview($idOrEmail);
+        if (!$comment) {
+            return $avatar;
+        }
+
+        // A custom uploaded avatar already won at priority 5 -- leave it alone.
         if (is_string($avatar) && strpos($avatar, 'wcri-custom-avatar') !== false) {
             return $avatar;
         }
 
-        $email = '';
-        if (is_object($idOrEmail) && isset($idOrEmail->comment_ID)) {
-            $email = $idOrEmail->comment_author_email;
-        } elseif (is_string($idOrEmail) && is_email($idOrEmail)) {
-            $email = $idOrEmail;
-        } elseif (is_numeric($idOrEmail)) {
-            $user = get_userdata((int) $idOrEmail);
-            if ($user) {
-                $email = $user->user_email;
-            }
-        }
-
+        $email = $comment->comment_author_email;
         if (empty($email) || !is_email($email)) {
             return $avatar;
         }
