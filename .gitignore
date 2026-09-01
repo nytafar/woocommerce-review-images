@@ -1,2 +1,6 @@
 *.bak
 .windsurf*.code-workspace
+node_modules/
+
+# performant-translations regenerates this cache from the .mo
+languages/*.l10n.php
