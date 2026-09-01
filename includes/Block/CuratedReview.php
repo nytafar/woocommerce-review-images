@@ -49,6 +49,21 @@ final class CuratedReview
             ['render_callback' => [self::class, 'render']]
         );
 
+        /**
+         * Drop the block's own stylesheet.
+         *
+         * The two style variations ship structure only -- reading order, a
+         * round avatar, a photo that stays inside its column -- and no chrome.
+         * A theme that would rather own even that returns false here and styles
+         * .is-style-quote / .is-style-compact itself. The variations stay
+         * registered either way, so the editor still offers them.
+         *
+         * @param bool $enqueue
+         */
+        if ($type && !apply_filters('kaupang/review-images/enqueue_block_styles', true)) {
+            $type->style_handles = [];
+        }
+
         // Editor strings ship in the plugin's own .mo files.
         if ($type && !empty($type->editor_script_handles)) {
             foreach ($type->editor_script_handles as $handle) {

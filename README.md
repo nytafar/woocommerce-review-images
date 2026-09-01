@@ -92,13 +92,58 @@ truncates the list.
 The PHP render callback is the single source of truth for the markup. The editor previews it
 through `<ServerSideRender />`, so there is no JS-side copy that can drift.
 
-### It ships zero CSS
+### Style variations
 
-No `style`, no `editorStyle` in `block.json`; no inline styles; no `style` attributes on anything
-the block authors. The theme owns presentation entirely — `myrvann/scss/plugins/_kaupang-review.scss`
-is where it lands on this site. The one inline style you will see inside the rating is
-WooCommerce's own `width:X%` star encoding from `wc_get_star_rating_html()`, which is data, not
-presentation.
+Three choices in the editor's Styles panel. **None is the default and ships no CSS whatsoever** —
+neither stylesheet selector matches a block without a variation, so an unstyled block is exactly as
+bare as it was before the stylesheet existed.
+
+| Style | For | What it does |
+|---|---|---|
+| **None** | theme owns everything | nothing at all |
+| **Quote** (`is-style-quote`) | a hero, a cover block, a testimonial band | body leads at `1.35em` on a `34ch` measure, attribution collapses to one byline row |
+| **Compact** (`is-style-compact`) | a one-third column, a sidebar | byline and rating share the top row, body clamped to four lines |
+
+What the two variations ship is **structure only**: reading order, a round avatar, a photo that
+stays inside its column, `margin: 0` on a `<blockquote>` the browser would otherwise indent 40px.
+No colour, no background, no border, no shadow, no font family. That is chrome, and chrome is the
+theme's — `myrvann/scss/plugins/_kaupang-review.scss` is where it lands on this site.
+
+`color` in particular is **never** set, not even to `inherit`: these selectors carry two classes and
+would out-specify a theme's own `.kaupang-review { color: … }`. A block inherits its surroundings
+without help.
+
+Every value is a custom property, so a theme retunes by setting one rather than out-specifying a
+rule:
+
+| Property | Quote | Compact |
+|---|---|---|
+| `--kaupang-review-avatar-size` | `2.5rem` | `2rem` |
+| `--kaupang-review-gap` | `1rem` | `0.5rem` |
+| `--kaupang-review-body-size` | `1.35em` | — |
+| `--kaupang-review-measure` | `34ch` | — |
+| `--kaupang-review-meta-size` | `0.875em` | — |
+| `--kaupang-review-body-lines` | — | `4` |
+| `--kaupang-review-photo-size` | — | `4.5rem` |
+
+The variations never hide anything. Presence is the toggles' job; Compact caps the photo and the
+product footnote small rather than removing them, so an editor who leaves them on gets something
+proportionate instead of something invisible.
+
+To drop the plugin's stylesheet entirely and style `.is-style-quote` / `.is-style-compact` yourself,
+the variations stay registered either way:
+
+```php
+add_filter( 'kaupang/review-images/enqueue_block_styles', '__return_false' );
+```
+
+There are still no inline styles on anything the block authors. The one you will see inside the
+rating is WooCommerce's own `width:X%` star encoding from `wc_get_star_rating_html()`, which is
+data, not presentation.
+
+> **History.** Spec §2 §I originally said the block ships zero CSS in every configuration. That was
+> reversed deliberately: the default still ships nothing, and the two variations ship the minimum a
+> review needs in order to read as a review.
 
 ### Attributes
 
@@ -209,6 +254,7 @@ Every filter this plugin defines, with the default it actually applies. All are 
 | `kaupang/review-images/enable_conditional_gravatars` | `bool $enabled` | `true` | `includes/Plugin.php`, `includes/Avatars/Display.php`, `includes/Avatars/Gravatar.php` |
 | `kaupang/review-images/enable_block` | `bool $enabled` | `true` | `includes/Block/CuratedReview.php` |
 | `kaupang/review-images/enqueue_styles` | `bool $enabled` | `true` | `includes/Reviews/Images.php` |
+| `kaupang/review-images/enqueue_block_styles` | `bool $enabled` | `true` | `includes/Block/CuratedReview.php` |
 | `kaupang/review-images/upload_field_label` | `string $label`, `WP_Post $product` | `'Product Image'` | `includes/Reviews/Images.php` |
 | `kaupang/review-images/avatar_upload_field_label` | `string $label`, `WP_Post $product` | `'Your Photo'` | `includes/Reviews/Images.php` |
 | `kaupang/review-images/avatar_base_size` | `int $px` | `120` | `includes/Avatars/Display.php`, `includes/Block/CuratedReview.php` |
@@ -221,7 +267,8 @@ The four `enable_*` module gates in `Plugin::boot()` run at **plugin-load time**
 mu-plugin or an earlier-loading plugin can flip them — a theme's `functions.php` runs too late.
 That timing is inherited from before the Kaupang conversion, not new.
 
-`enable_block` is different: it is applied inside the `init` callback, so a theme *can* flip it.
+`enable_block` and `enqueue_block_styles` are different: both are applied inside the `init`
+callback, so a theme *can* flip them.
 `enable_avatar_upload` (in the form renderer), `enable_conditional_gravatars` (in the two
 `get_avatar` filters) and `enqueue_styles` are all re-evaluated at render time and are themeable
 too.
@@ -348,7 +395,8 @@ Two breaking changes — the rename and the hook removal — hence the major bum
   greps WooCommerce for it. `kaupang/review-images/display_avatar_in_meta` and
   `WC_Review_Images_Avatar_Display::display_avatar_in_review_meta()` go with them.
 - **NEW**: the **Curated Review** block (`kaupang-review-images/curated-review`) — one
-  hand-picked review, nine toggles, the `kaupang-review__*` class contract, zero CSS.
+  hand-picked review, nine toggles, the `kaupang-review__*` class contract, and three
+  style variations of which the default ships no CSS.
   Kill switch: `kaupang/review-images/enable_block`.
 - **FIXED**: a review whose author has **no email address** rendered the default mystery-person.
   The conditional-Gravatar branch only suppressed when an address was present and had no

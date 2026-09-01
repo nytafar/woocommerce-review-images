@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the WooCommerce Review Images package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Review Images 1.2.0\n"
+"Project-Id-Version: Kaupang Review Images 2.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/kaupang-review-"
 "images\n"
-"POT-Creation-Date: 2026-09-01T16:59:17+00:00\n"
+"POT-Creation-Date: 2026-09-01T17:41:55+00:00\n"
 "PO-Revision-Date: 2025-10-27T16:43:00+00:00\n"
 "Last-Translator: \n"
 "Language-Team: Norwegian\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.4.2\n"
-"X-Domain: woocommerce-review-images\n"
+"X-Domain: kaupang-review-images\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. Plugin Name of the plugin
@@ -34,7 +34,11 @@ msgid ""
 "attach a product photo and a profile picture to their review, stored as "
 "ordinary media attachments; conditional Gravatar loading keeps default "
 "avatars off the page. Part of the Kaupang suite."
-msgstr "Bilde- og avataropplasting for produktomtaler i WooCommerce – kundene legger ved et produktbilde og et profilbilde i omtalen sin, lagret som vanlige mediefiler. Betinget Gravatar-lasting holder standardavatarer borte fra siden. Del av Kaupang-pakken."
+msgstr ""
+"Bilde- og avataropplasting for produktomtaler i WooCommerce – kundene legger "
+"ved et produktbilde og et profilbilde i omtalen sin, lagret som vanlige "
+"mediefiler. Betinget Gravatar-lasting holder standardavatarer borte fra "
+"siden. Del av Kaupang-pakken."
 
 #. Author of the plugin
 #: kaupang-review-images.php
@@ -47,8 +51,8 @@ msgid "https://jellum.net"
 msgstr ""
 
 #. translators: %s: review author name.
-#: includes/Avatars/Upload.php:93 includes/Block/CuratedReview.php:200
-#,php-format
+#: includes/Avatars/Upload.php:93 includes/Block/CuratedReview.php:215
+#, php-format
 msgid "Avatar for %s"
 msgstr "Avatar for %s"
 
@@ -68,17 +72,21 @@ msgstr "Denne avataren går foran Gravatar."
 msgid ""
 "Avatar data found, but the image could not be displayed. It might have been "
 "deleted from the media library."
-msgstr "Fant avatardata, men bildet kunne ikke vises. Det kan ha blitt slettet fra mediebiblioteket."
+msgstr ""
+"Fant avatardata, men bildet kunne ikke vises. Det kan ha blitt slettet fra "
+"mediebiblioteket."
 
-#: includes/Block/CuratedReview.php:250
+#: includes/Block/CuratedReview.php:269
 msgid "Pick a product and a review in the block settings."
 msgstr "Velg et produkt og en omtale i blokkinnstillingene."
 
-#: includes/Block/CuratedReview.php:251
+#: includes/Block/CuratedReview.php:270
 msgid ""
 "That review is not available any more — it may have been deleted, "
 "unapproved, or marked as spam."
-msgstr "Omtalen er ikke tilgjengelig lenger – den kan være slettet, satt til ikke godkjent eller merket som spam."
+msgstr ""
+"Omtalen er ikke tilgjengelig lenger – den kan være slettet, satt til ikke "
+"godkjent eller merket som spam."
 
 #: includes/Reviews/Images.php:92
 msgid "Kaupang Review Images requires WooCommerce to be installed and active."
@@ -148,106 +156,118 @@ msgstr "Det ble ikke lastet opp noe bilde med denne omtalen."
 msgid ""
 "Image data found, but the image could not be displayed. It might have been "
 "deleted from the media library."
-msgstr "Fant bildedata, men bildet kunne ikke vises. Det kan ha blitt slettet fra mediebiblioteket."
+msgstr ""
+"Fant bildedata, men bildet kunne ikke vises. Det kan ha blitt slettet fra "
+"mediebiblioteket."
 
 #. translators: 1: reviewer name. 2: rating, 1-5. 3: opening words of the review.
-#: block/src/index.js:177
+#: block/src/index.js:185
 msgid "%1$s · %2$d★ · %3$s"
 msgstr "%1$s · %2$d★ · %3$s"
 
-#: block/src/index.js:178
+#: block/src/index.js:186
 msgid "Anonymous"
 msgstr "Anonym"
 
-#: block/src/index.js:187
+#: block/src/index.js:195
 msgid "Select a product first"
 msgstr "Velg et produkt først"
 
-#: block/src/index.js:189
+#: block/src/index.js:197
 msgid "Loading reviews…"
 msgstr "Henter omtaler …"
 
-#: block/src/index.js:191
+#: block/src/index.js:199
 msgid "This product has no approved reviews yet."
 msgstr "Dette produktet har ingen godkjente omtaler ennå."
 
-#: block/src/index.js:210
+#: block/src/index.js:218
 msgid "Review source"
 msgstr "Kilde for omtalen"
 
-#: block/src/index.js:213 block/src/index.js:312
+#: block/src/index.js:221 block/src/index.js:337
 msgid "Product"
 msgstr "Produkt"
 
-#: block/src/index.js:214
+#: block/src/index.js:222
 msgid "Type to search all products."
 msgstr "Skriv for å søke i alle produkter."
 
-#: block/src/index.js:233
+#: block/src/index.js:249
+msgid ""
+"Your session has expired — save your work, reload the editor, and sign in "
+"again."
+msgstr ""
+
+#: block/src/index.js:258
 msgid ""
 "You need review-moderation permission to pick a review — ask an "
 "administrator."
-msgstr "Du må ha tilgang til å moderere omtaler for å kunne velge en. Spør en administrator."
+msgstr ""
+"Du må ha tilgang til å moderere omtaler for å kunne velge en. Spør en "
+"administrator."
 
-#: block/src/index.js:243
+#: block/src/index.js:268
 msgid "The review list could not be loaded."
 msgstr "Klarte ikke å hente listen over omtaler."
 
-#: block/src/index.js:257
+#: block/src/index.js:282
 msgid "Review"
 msgstr "Omtale"
 
-#: block/src/index.js:272
+#: block/src/index.js:297
 msgid "Content"
 msgstr "Innhold"
 
-#: block/src/index.js:277
+#: block/src/index.js:302
 msgid "Review text"
 msgstr "Omtaletekst"
 
-#: block/src/index.js:281
+#: block/src/index.js:306
 msgid "Customer photos"
 msgstr "Kundebilder"
 
-#: block/src/index.js:285
+#: block/src/index.js:310
 msgid "Star rating"
 msgstr "Stjernevurdering"
 
-#: block/src/index.js:290
+#: block/src/index.js:315
 msgid "Attribution"
 msgstr "Avsender"
 
-#: block/src/index.js:295
+#: block/src/index.js:320
 msgid "Reviewer name"
 msgstr "Kundenavn"
 
-#: block/src/index.js:299
+#: block/src/index.js:324
 msgid "Avatar"
 msgstr "Avatar"
 
-#: block/src/index.js:303
+#: block/src/index.js:328
 msgid "Verified-owner badge"
 msgstr "Merke for verifisert kjøp"
 
-#: block/src/index.js:307
+#: block/src/index.js:332
 msgid "Date"
 msgstr "Dato"
 
-#: block/src/index.js:317
+#: block/src/index.js:342
 msgid "Product name"
 msgstr "Produktnavn"
 
-#: block/src/index.js:321
+#: block/src/index.js:346
 msgid "Product image"
 msgstr "Produktbilde"
 
-#: block/src/index.js:334
+#: block/src/index.js:359
 msgid "Curated Review"
 msgstr "Utvalgt omtale"
 
-#: block/src/index.js:335
+#: block/src/index.js:360
 msgid "Pick a product, then one of its reviews, in the block settings sidebar."
-msgstr "Velg et produkt, og deretter en av omtalene, i sidepanelet for blokkinnstillinger."
+msgstr ""
+"Velg et produkt, og deretter en av omtalene, i sidepanelet for "
+"blokkinnstillinger."
 
 #: block/block.json
 msgctxt "block title"
@@ -259,7 +279,19 @@ msgctxt "block description"
 msgid ""
 "Place one hand-picked product review anywhere. Toggles decide what renders; "
 "the theme decides how it looks."
-msgstr "Plasser én utvalgt produktomtale hvor som helst. Bryterne bestemmer hva som vises, temaet bestemmer hvordan det ser ut."
+msgstr ""
+"Plasser én utvalgt produktomtale hvor som helst. Bryterne bestemmer hva som "
+"vises, temaet bestemmer hvordan det ser ut."
+
+#: block/block.json
+msgctxt "block style label"
+msgid "Quote"
+msgstr "Sitat"
+
+#: block/block.json
+msgctxt "block style label"
+msgid "Compact"
+msgstr "Kompakt"
 
 #~ msgid "Upload your profile photo (optional, max 1MB, JPG, PNG, GIF)"
 #~ msgstr "Last opp profilbildet ditt (valgfritt, maks 1MB, JPG, PNG, GIF)"

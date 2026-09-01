@@ -25,6 +25,9 @@ import ServerSideRender from '@wordpress/server-side-render';
 
 import metadata from '../block.json';
 
+// Emitted as build/style-index.css and registered by block.json's "style".
+import './style.scss';
+
 const SNIPPET_LENGTH = 60;
 const PRODUCTS_PER_PAGE = 20;
 

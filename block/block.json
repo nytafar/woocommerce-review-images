@@ -11,17 +11,61 @@
     "html": false
   },
   "attributes": {
-    "reviewId": { "type": "number", "default": 0 },
-    "productId": { "type": "number", "default": 0 },
-    "showBody": { "type": "boolean", "default": true },
-    "showReviewImages": { "type": "boolean", "default": false },
-    "showRating": { "type": "boolean", "default": false },
-    "showAuthor": { "type": "boolean", "default": true },
-    "showAvatar": { "type": "boolean", "default": true },
-    "showVerified": { "type": "boolean", "default": false },
-    "showDate": { "type": "boolean", "default": true },
-    "showProductName": { "type": "boolean", "default": true },
-    "showProductImage": { "type": "boolean", "default": false }
+    "reviewId": {
+      "type": "number",
+      "default": 0
+    },
+    "productId": {
+      "type": "number",
+      "default": 0
+    },
+    "showBody": {
+      "type": "boolean",
+      "default": true
+    },
+    "showReviewImages": {
+      "type": "boolean",
+      "default": false
+    },
+    "showRating": {
+      "type": "boolean",
+      "default": false
+    },
+    "showAuthor": {
+      "type": "boolean",
+      "default": true
+    },
+    "showAvatar": {
+      "type": "boolean",
+      "default": true
+    },
+    "showVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "showDate": {
+      "type": "boolean",
+      "default": true
+    },
+    "showProductName": {
+      "type": "boolean",
+      "default": true
+    },
+    "showProductImage": {
+      "type": "boolean",
+      "default": false
+    }
   },
-  "editorScript": "file:./build/index.js"
+  "editorScript": "file:./build/index.js",
+  "styles": [
+    {
+      "name": "quote",
+      "label": "Quote"
+    },
+    {
+      "name": "compact",
+      "label": "Compact"
+    }
+  ],
+  "style": "file:./build/style-index.css"
 }

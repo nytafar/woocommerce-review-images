@@ -1,0 +1,197 @@
+/**
+ * Curated Review — style variations.
+ *
+ * Structure only. No colour, no background, no border, no shadow, no font
+ * family, no spacing scale: that is chrome, and chrome belongs to the theme.
+ * What lives here is only what the review needs in order to READ as a review —
+ * reading order, the avatar being round, the photo not escaping its column.
+ *
+ * Everything tunable is a custom property, so a theme retunes by setting one
+ * value rather than out-specifying a rule.
+ *
+ * `color` is deliberately NOT set here, not even to `inherit`. Colour is chrome.
+ * A block with no theme rule inherits its surroundings anyway, so declaring it
+ * buys nothing -- and because these selectors carry two classes they would
+ * out-specify a theme's own `.kaupang-review { color: ... }`. That is exactly
+ * what happened on a cover block: the plugin forced the cover's white text onto
+ * the card the theme had just painted cream.
+ *
+ * The default style ships NOTHING. Neither selector below matches a block with
+ * no variation chosen, which is the point: `None` stays exactly as bare as it
+ * was before this file existed.
+ *
+ * A theme that wants none of it at all:
+ *   add_filter( 'kaupang/review-images/enqueue_block_styles', '__return_false' );
+ */
+
+.kaupang-review.is-style-quote,
+.kaupang-review.is-style-compact {
+	.kaupang-review__body {
+		// Browsers give blockquote `margin: 1em 40px`. That indent is a
+		// presentation decision we are not entitled to make.
+		margin: 0;
+		padding: 0;
+		border: 0;
+		font-style: inherit;
+
+		> :first-child {
+			margin-block-start: 0;
+		}
+
+		> :last-child {
+			margin-block-end: 0;
+		}
+	}
+
+	// Themes commonly set a content-flow margin on descendants of <article> or
+	// .entry-content. Inherited auto-margins turn a flex row into scattered
+	// items -- Ousia was putting 46px on either side of every part of the
+	// byline. Neutralising them is structure, not chrome: without it these
+	// layouts simply are not the layouts they claim to be.
+	> *,
+	.kaupang-review__author > *,
+	.kaupang-review__product > * {
+		margin-inline: 0;
+		max-inline-size: none;
+	}
+
+	.kaupang-review__images {
+		margin: 0;
+	}
+
+	.kaupang-review__image,
+	.kaupang-review__product-image {
+		display: block;
+		max-inline-size: 100%;
+		block-size: auto;
+	}
+
+	.kaupang-review__rating {
+		margin: 0;
+		line-height: 1;
+	}
+
+	.kaupang-review__avatar {
+		flex: none;
+		inline-size: var(--kaupang-review-avatar-size);
+		block-size: var(--kaupang-review-avatar-size);
+		border-radius: 50%;
+		object-fit: cover;
+	}
+}
+
+/**
+ * Quote — the body leads and the attribution shrinks to a byline.
+ * Sized for a hero or a cover block.
+ */
+.kaupang-review.is-style-quote {
+	--kaupang-review-avatar-size: 2.5rem;
+	--kaupang-review-gap: 1rem;
+	--kaupang-review-body-size: 1.35em;
+	--kaupang-review-measure: 34ch;
+	--kaupang-review-meta-size: 0.875em;
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--kaupang-review-gap);
+
+	.kaupang-review__body {
+		font-size: var(--kaupang-review-body-size);
+		line-height: 1.35;
+		// A measure, not a width: long testimonials stay readable, short ones
+		// do not get stretched.
+		max-inline-size: var(--kaupang-review-measure);
+	}
+
+	.kaupang-review__author {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6em;
+		font-size: var(--kaupang-review-meta-size);
+	}
+
+	.kaupang-review__product {
+		font-size: var(--kaupang-review-meta-size);
+	}
+}
+
+/**
+ * Compact — attribution and rating share the top row, the body is clamped
+ * beneath them. Built to survive a one-third column.
+ *
+ * Note what this does NOT do: hide anything. Presence is the toggles' job, not
+ * CSS's. The photo and the product footnote are capped small rather than
+ * removed, so an editor who leaves them on gets something proportionate
+ * instead of something invisible.
+ */
+.kaupang-review.is-style-compact {
+	--kaupang-review-avatar-size: 2rem;
+	--kaupang-review-gap: 0.5rem;
+	--kaupang-review-body-lines: 4;
+	--kaupang-review-photo-size: 4.5rem;
+
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--kaupang-review-gap);
+	font-size: 0.9375em;
+
+	// Reading order in the markup is body-first, which is right for screen
+	// readers and text extraction. Visually the byline leads here. `order` is
+	// exactly the seam that lets those two differ.
+	.kaupang-review__author {
+		order: 1;
+		// Shrinkable, so the rating keeps the top row when there is space and
+		// drops below it when there is not, instead of always being pushed off.
+		flex: 1 1 auto;
+		min-inline-size: 0;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5em;
+	}
+
+	.kaupang-review__rating {
+		order: 2;
+		margin-inline-start: auto;
+	}
+
+	.kaupang-review__body {
+		order: 3;
+		flex-basis: 100%;
+		line-height: 1.4;
+		// Clamp rather than truncate with an ellipsis in markup: the full text
+		// stays in the DOM for search and for anyone reading it aloud.
+		display: -webkit-box;
+		-webkit-line-clamp: var(--kaupang-review-body-lines);
+		line-clamp: var(--kaupang-review-body-lines);
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+
+		p {
+			margin: 0;
+		}
+	}
+
+	.kaupang-review__images {
+		order: 4;
+		flex-basis: 100%;
+	}
+
+	.kaupang-review__image {
+		max-block-size: var(--kaupang-review-photo-size);
+		inline-size: auto;
+	}
+
+	.kaupang-review__product {
+		order: 5;
+		flex-basis: 100%;
+		font-size: 0.875em;
+	}
+
+	.kaupang-review__product-image {
+		max-block-size: var(--kaupang-review-photo-size);
+		inline-size: auto;
+	}
+}
