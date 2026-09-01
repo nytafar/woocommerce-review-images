@@ -37,6 +37,8 @@ final class Plugin
         if (apply_filters('kaupang/review-images/enable_conditional_gravatars', true)) {
             Avatars\Gravatar::instance();
         }
+
+        Block\CuratedReview::register();
     }
 
     public static function loadTextdomain(): void
