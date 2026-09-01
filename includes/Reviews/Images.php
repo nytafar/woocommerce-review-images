@@ -268,16 +268,31 @@ final class Images
         }
     }
 
+    /**
+     * Attachment ids of the images on a review.
+     *
+     * Zero or one element today. An array from day one so that multi-image
+     * upload later is a storage change only -- no block change, no theme CSS
+     * change. The meta key stays _review_image_id: existing data keeps working.
+     *
+     * @return array<int, int>
+     */
+    public static function getImageIds(int $commentId): array
+    {
+        $imageId = get_comment_meta($commentId, self::META_KEY_IMAGE_ID, true);
+
+        return $imageId ? [absint($imageId)] : [];
+    }
+
     public function displayReviewImage(\WP_Comment $comment): void
     {
-        $imageId = get_comment_meta($comment->comment_ID, self::META_KEY_IMAGE_ID, true);
-        if (!$imageId) {
-            return;
-        }
+        $imageIds = self::getImageIds((int) $comment->comment_ID);
 
-        $html = wp_get_attachment_image((int) $imageId, 'medium', false, ['style' => 'height:auto;width:100%;;']);
-        if ($html) {
-            echo $html;
+        foreach ($imageIds as $imageId) {
+            $html = wp_get_attachment_image($imageId, 'medium', false, ['style' => 'height:auto;width:100%;;']);
+            if ($html) {
+                echo $html;
+            }
         }
     }
 
@@ -314,10 +329,12 @@ final class Images
             return;
         }
 
-        $imageId = get_comment_meta($commentId, self::META_KEY_IMAGE_ID, true);
-        $html    = $imageId
-            ? wp_get_attachment_image((int) $imageId, [80, 80], true, ['style' => 'max-width:80px; height:auto; display:block; margin:auto;'])
-            : '';
+        $imageIds = self::getImageIds(absint($commentId));
+        $html     = '';
+
+        foreach ($imageIds as $imageId) {
+            $html .= wp_get_attachment_image($imageId, [80, 80], true, ['style' => 'max-width:80px; height:auto; display:block; margin:auto;']);
+        }
 
         echo $html ?: esc_html__('N/A', 'kaupang-review-images');
     }
@@ -340,15 +357,19 @@ final class Images
 
     public function renderReviewImageMetaBox(\WP_Comment $comment): void
     {
-        $imageId = get_comment_meta($comment->comment_ID, self::META_KEY_IMAGE_ID, true);
+        $imageIds = self::getImageIds((int) $comment->comment_ID);
 
-        if (!$imageId) {
+        if (!$imageIds) {
             echo '<p>' . esc_html__('No image was uploaded with this review.', 'kaupang-review-images') . '</p>';
 
             return;
         }
 
-        $html = wp_get_attachment_image((int) $imageId, 'medium', false, ['style' => 'max-width:100%; height:auto;']);
+        $html = '';
+        foreach ($imageIds as $imageId) {
+            $html .= wp_get_attachment_image($imageId, 'medium', false, ['style' => 'max-width:100%; height:auto;']);
+        }
+
         if ($html) {
             echo $html;
         } else {
