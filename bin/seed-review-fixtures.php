@@ -9,6 +9,11 @@
  *     eval-file wp-content/plugins/kaupang-review-images/bin/seed-review-fixtures.php
  *   ... eval-file .../seed-review-fixtures.php clean
  *
+ * And, for design work against REAL reviews rather than placeholder text:
+ *
+ *   ... eval-file .../seed-review-fixtures.php decorate 4
+ *   ... eval-file .../seed-review-fixtures.php undecorate
+ *
  * Idempotent: a second create reuses the existing fixture rather than piling up
  * duplicates. Everything it makes is tagged with KRI_FIXTURE_META so clean can
  * find it again, review and attachments alike.
@@ -23,6 +28,14 @@
 // must be the first statement of a script.
 
 const KRI_FIXTURE_META  = '_kri_fixture';
+
+/**
+ * Marks a REAL review that has been lent real media for design work.
+ *
+ * Deliberately NOT KRI_FIXTURE_META. Anything carrying that key is deleted
+ * outright by kri_fixture_delete(), and these are real customer reviews.
+ */
+const KRI_DECORATED_META = '_kri_decorated';
 const KRI_FIXTURE_EMAIL = 'fixture@kaupang-review-images.invalid';
 
 /**
@@ -158,6 +171,79 @@ function kri_fixture_delete(): int
     return $removed;
 }
 
+/**
+ * Lend real attachments to real reviews, so the block can be judged against
+ * real prose and real photography instead of placeholder text and a flat green
+ * square. Staging has 143 approved reviews and not one _review_image_id.
+ *
+ * Only ever writes meta. It never creates, edits or deletes a comment, and it
+ * skips any review that already has an image so a real upload can never be
+ * overwritten.
+ *
+ * @param array<int, int> $imageIds  Attachment ids to use as review photos.
+ * @param array<int, int> $avatarIds Attachment ids to use as avatars.
+ * @return array<int, int> Decorated comment ids.
+ */
+function kri_decorate(int $count = 4, array $imageIds = [], array $avatarIds = []): array
+{
+    $imageIds  = $imageIds ?: [12283, 12282, 12281, 12279];
+    $avatarIds = $avatarIds ?: [12277, 12275, 12273, 12271];
+
+    $candidates = get_comments([
+        'type'   => 'review',
+        'status' => 'approve',
+        'number' => 200,
+    ]);
+
+    // Longest first: a short review exercises neither the quote's measure nor
+    // the compact clamp.
+    usort($candidates, static fn($a, $b) => mb_strlen($b->comment_content) <=> mb_strlen($a->comment_content));
+
+    $done = [];
+
+    foreach ($candidates as $comment) {
+        if (count($done) >= $count) {
+            break;
+        }
+
+        $commentId = (int) $comment->comment_ID;
+
+        // Never touch a review that already carries an image we did not add.
+        $existing = get_comment_meta($commentId, '_review_image_id', true);
+        if ($existing && !get_comment_meta($commentId, KRI_DECORATED_META, true)) {
+            continue;
+        }
+
+        $i = count($done);
+        update_comment_meta($commentId, '_review_image_id', $imageIds[$i % count($imageIds)]);
+        update_comment_meta($commentId, '_review_author_avatar_id', $avatarIds[$i % count($avatarIds)]);
+        update_comment_meta($commentId, KRI_DECORATED_META, 1);
+
+        $done[] = $commentId;
+    }
+
+    return $done;
+}
+
+/**
+ * Give the borrowed media back. Removes only the meta this script added, and
+ * never deletes a comment -- these are real reviews.
+ */
+function kri_undecorate(): int
+{
+    $n = 0;
+
+    foreach (get_comments(['meta_key' => KRI_DECORATED_META, 'status' => 'all', 'number' => 0]) as $comment) {
+        $commentId = (int) $comment->comment_ID;
+        delete_comment_meta($commentId, '_review_image_id');
+        delete_comment_meta($commentId, '_review_author_avatar_id');
+        delete_comment_meta($commentId, KRI_DECORATED_META);
+        $n++;
+    }
+
+    return $n;
+}
+
 function kri_fixture_fail(string $message): void
 {
     fwrite(STDERR, 'seed-review-fixtures: ' . $message . PHP_EOL);
@@ -169,6 +255,21 @@ if (!defined('KRI_FIXTURES_LIB')) {
 
     if ($action === 'clean') {
         printf("removed %d fixture objects\n", kri_fixture_delete());
+    } elseif ($action === 'decorate') {
+        $ids = kri_decorate((int) ($args[1] ?? 4));
+        foreach ($ids as $id) {
+            $c = get_comment($id);
+            printf(
+                "review %d  %s  %d chars  image %s  avatar %s\n",
+                $id,
+                $c->comment_author,
+                mb_strlen($c->comment_content),
+                get_comment_meta($id, '_review_image_id', true),
+                get_comment_meta($id, '_review_author_avatar_id', true)
+            );
+        }
+    } elseif ($action === 'undecorate') {
+        printf("gave back borrowed media on %d real reviews\n", kri_undecorate());
     } else {
         $fixture = kri_fixture_create();
         printf(

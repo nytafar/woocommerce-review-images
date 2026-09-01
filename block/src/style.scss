@@ -134,6 +134,16 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
+	// Rows pack to the top, so a card with a shorter byline does not float its
+	// content down the middle.
+	//
+	// ponytail: this does NOT make a row of cards in wp:columns end level --
+	// the column's height is not definite, so a percentage height on the card
+	// resolves to auto. Equal heights need the column itself to be a flex
+	// container, which is the theme's call:
+	//   .wp-block-column > .kaupang-review { block-size: 100%; }
+	//   .wp-block-column { display: flex; }
+	align-content: flex-start;
 	gap: var(--kaupang-review-gap);
 	font-size: 0.9375em;
 
