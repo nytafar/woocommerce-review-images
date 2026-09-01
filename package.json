@@ -5,9 +5,10 @@
   "license": "GPL-2.0-or-later",
   "description": "Build tooling for the Curated Review block.",
   "scripts": {
-    "prebuild": "chmod +x node_modules/@wordpress/scripts/bin/wp-scripts.js 2>/dev/null || true",
+    "postinstall": "find node_modules/.bin -maxdepth 1 -type l -exec chmod +x {} + || true",
+    "prebuild": "find node_modules/.bin -maxdepth 1 -type l -exec chmod +x {} + || true",
     "build": "wp-scripts build --webpack-src-dir=block/src --output-path=block/build",
-    "prestart": "chmod +x node_modules/@wordpress/scripts/bin/wp-scripts.js 2>/dev/null || true",
+    "prestart": "find node_modules/.bin -maxdepth 1 -type l -exec chmod +x {} + || true",
     "start": "wp-scripts start --webpack-src-dir=block/src --output-path=block/build",
     "test": "wp-scripts test-unit-js"
   },

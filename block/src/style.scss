@@ -81,6 +81,61 @@
 }
 
 /**
+ * Star-rating floor.
+ *
+ * WooCommerce's own `.star-rating` CSS is scoped under `.woocommerce`, and a
+ * page or post carrying this block is not. Without this the rating renders as
+ * the literal words "Rated 5 out of 5" overlapping themselves — broken, not
+ * merely unstyled, which is why it earns its place in a barebones sheet.
+ *
+ * Wrapped in `:where()` on BOTH halves so the whole thing has zero specificity.
+ * It is a floor, never a fight: the moment a theme has stars of its own — as
+ * myrvann does — the theme's win on a single class. Colour is not set; the
+ * glyphs inherit and the empty half is opacity, not a colour.
+ *
+ * The mechanic is WooCommerce's: a fixed-width strip of dim stars, with a
+ * `<span>` whose inline `width:X%` clips a bright copy over the top. The span's
+ * own text is pushed out of the clipped box rather than hidden, so it stays
+ * readable to a screen reader.
+ */
+:where(.kaupang-review.is-style-quote, .kaupang-review.is-style-compact) :where(.star-rating) {
+	display: inline-block;
+	position: relative;
+	overflow: hidden;
+	line-height: 1;
+
+	// The dim strip is IN FLOW, and is what gives the box its width. That is
+	// deliberate: Ousia ships an unscoped `.star-rating { width: max-content }`
+	// which, with an absolutely-positioned strip, resolves to zero and erases
+	// the rating. A zero-specificity floor cannot win that fight, so it is
+	// built not to need to -- max-content of five stars is exactly the width
+	// wanted anyway.
+	&::before {
+		content: "★★★★★";
+		display: block;
+		opacity: 0.3;
+	}
+
+	// The bright strip is clipped to the inline width:X% WooCommerce puts on
+	// this span. Its own text ("Rated 5 out of 5") is pushed below the clipped
+	// box rather than hidden, so it stays available to a screen reader.
+	span {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 0;
+		overflow: hidden;
+		padding-block-start: 1.5em;
+
+		&::before {
+			content: "★★★★★";
+			position: absolute;
+			inset-block-start: 0;
+			inset-inline-start: 0;
+		}
+	}
+}
+
+/**
  * Quote — the body leads and the attribution shrinks to a byline.
  * Sized for a hero or a cover block.
  */

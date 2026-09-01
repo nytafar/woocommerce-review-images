@@ -109,6 +109,12 @@ stays inside its column, `margin: 0` on a `<blockquote>` the browser would other
 No colour, no background, no border, no shadow, no font family. That is chrome, and chrome is the
 theme's — `myrvann/scss/plugins/_kaupang-review.scss` is where it lands on this site.
 
+One exception earns its place: the two variations ship a **star-rating floor**.
+WooCommerce's own `.star-rating` CSS is scoped under `.woocommerce`, and a page or post carrying
+this block is not — so without it the rating renders as the literal words "Rated 5 out of 5"
+overlapping themselves. That is broken, not merely unstyled. The floor is wrapped in `:where()` so
+it has **zero specificity**: any theme with stars of its own wins on a single class.
+
 `color` in particular is **never** set, not even to `inherit`: these selectors carry two classes and
 would out-specify a theme's own `.kaupang-review { color: … }`. A block inherits its surroundings
 without help.
