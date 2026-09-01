@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "kaupang-review-images/curated-review",
+  "title": "Curated Review",
+  "category": "widgets",
+  "icon": "format-quote",
+  "description": "Place one hand-picked product review anywhere. Toggles decide what renders; the theme decides how it looks.",
+  "textdomain": "kaupang-review-images",
+  "supports": {
+    "html": false
+  },
+  "attributes": {
+    "reviewId": { "type": "number", "default": 0 },
+    "productId": { "type": "number", "default": 0 },
+    "showBody": { "type": "boolean", "default": true },
+    "showReviewImages": { "type": "boolean", "default": false },
+    "showRating": { "type": "boolean", "default": false },
+    "showAuthor": { "type": "boolean", "default": true },
+    "showAvatar": { "type": "boolean", "default": true },
+    "showVerified": { "type": "boolean", "default": false },
+    "showDate": { "type": "boolean", "default": true },
+    "showProductName": { "type": "boolean", "default": true },
+    "showProductImage": { "type": "boolean", "default": false }
+  },
+  "editorScript": "file:./build/index.js"
+}

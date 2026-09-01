@@ -1,0 +1,16 @@
+{
+  "name": "kaupang-review-images",
+  "version": "2.0.0",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "description": "Build tooling for the Curated Review block.",
+  "scripts": {
+    "build": "wp-scripts build --webpack-src-dir=block/src --output-path=block/build",
+    "start": "wp-scripts start --webpack-src-dir=block/src --output-path=block/build",
+    "test": "wp-scripts test-unit-js",
+    "postinstall": "find node_modules/.bin -maxdepth 1 -type l -exec chmod +x {} + || true"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^30.0.0"
+  }
+}

@@ -1,0 +1,280 @@
+# Norwegian translation for WooCommerce Review Images
+# This file is distributed under the same license as the WooCommerce Review Images package.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Review Images 1.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/kaupang-review-"
+"images\n"
+"POT-Creation-Date: 2026-09-01T16:59:17+00:00\n"
+"PO-Revision-Date: 2025-10-27T16:43:00+00:00\n"
+"Last-Translator: \n"
+"Language-Team: Norwegian\n"
+"Language: no_NO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
+"X-Domain: woocommerce-review-images\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+#: kaupang-review-images.php
+msgid "Kaupang Review Images"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: kaupang-review-images.php
+msgid "https://github.com/nytafar/kaupang-review-images"
+msgstr ""
+
+#. Description of the plugin
+#: kaupang-review-images.php
+msgid ""
+"Review image and avatar uploads for WooCommerce product reviews — customers "
+"attach a product photo and a profile picture to their review, stored as "
+"ordinary media attachments; conditional Gravatar loading keeps default "
+"avatars off the page. Part of the Kaupang suite."
+msgstr "Bilde- og avataropplasting for produktomtaler i WooCommerce – kundene legger ved et produktbilde og et profilbilde i omtalen sin, lagret som vanlige mediefiler. Betinget Gravatar-lasting holder standardavatarer borte fra siden. Del av Kaupang-pakken."
+
+#. Author of the plugin
+#: kaupang-review-images.php
+msgid "Lasse Jellum"
+msgstr ""
+
+#. Author URI of the plugin
+#: kaupang-review-images.php
+msgid "https://jellum.net"
+msgstr ""
+
+#. translators: %s: review author name.
+#: includes/Avatars/Upload.php:93 includes/Block/CuratedReview.php:200
+#,php-format
+msgid "Avatar for %s"
+msgstr "Avatar for %s"
+
+#: includes/Avatars/Upload.php:153
+msgid "Review Author Avatar"
+msgstr "Avatar for omtaleforfatter"
+
+#: includes/Avatars/Upload.php:167
+msgid "No custom avatar was uploaded with this review."
+msgstr "Det ble ikke lastet opp noen egen avatar med denne omtalen."
+
+#: includes/Avatars/Upload.php:178
+msgid "This custom avatar takes precedence over Gravatar."
+msgstr "Denne avataren går foran Gravatar."
+
+#: includes/Avatars/Upload.php:180
+msgid ""
+"Avatar data found, but the image could not be displayed. It might have been "
+"deleted from the media library."
+msgstr "Fant avatardata, men bildet kunne ikke vises. Det kan ha blitt slettet fra mediebiblioteket."
+
+#: includes/Block/CuratedReview.php:250
+msgid "Pick a product and a review in the block settings."
+msgstr "Velg et produkt og en omtale i blokkinnstillingene."
+
+#: includes/Block/CuratedReview.php:251
+msgid ""
+"That review is not available any more — it may have been deleted, "
+"unapproved, or marked as spam."
+msgstr "Omtalen er ikke tilgjengelig lenger – den kan være slettet, satt til ikke godkjent eller merket som spam."
+
+#: includes/Reviews/Images.php:92
+msgid "Kaupang Review Images requires WooCommerce to be installed and active."
+msgstr "Kaupang Review Images krever at WooCommerce er installert og aktivert."
+
+#: includes/Reviews/Images.php:110
+msgid "Your Photo"
+msgstr "Ditt bilde"
+
+#: includes/Reviews/Images.php:111
+msgid "Product Image"
+msgstr "Produktbilde"
+
+#: includes/Reviews/Images.php:126 includes/Reviews/Images.php:164
+msgid "Choose Photo"
+msgstr "Velg bilde"
+
+#: includes/Reviews/Images.php:128
+msgid "Upload your profile picture"
+msgstr "Last opp profilbildet ditt"
+
+#: includes/Reviews/Images.php:130
+msgid "Avatar preview"
+msgstr "Forhåndsvisning av avatar"
+
+#: includes/Reviews/Images.php:131 includes/Reviews/Images.php:153
+msgid "Remove"
+msgstr "Fjern"
+
+#: includes/Reviews/Images.php:148 includes/Reviews/Images.php:165
+msgid "Choose Image"
+msgstr "Velg bilde"
+
+#: includes/Reviews/Images.php:150
+msgid "Share a photo of the product"
+msgstr "Del et bilde av produktet"
+
+#: includes/Reviews/Images.php:152
+msgid "Review image preview"
+msgstr "Forhåndsvisning av omtalebilde"
+
+#: includes/Reviews/Images.php:162
+msgid "Change Photo"
+msgstr "Endre bilde"
+
+#: includes/Reviews/Images.php:163
+msgid "Change Image"
+msgstr "Endre bilde"
+
+#: includes/Reviews/Images.php:310 includes/Reviews/Images.php:316
+msgid "Image"
+msgstr "Bilde"
+
+#: includes/Reviews/Images.php:339
+msgid "N/A"
+msgstr "–"
+
+#: includes/Reviews/Images.php:349
+msgid "Review Image"
+msgstr "Omtalebilde"
+
+#: includes/Reviews/Images.php:363
+msgid "No image was uploaded with this review."
+msgstr "Det ble ikke lastet opp noe bilde med denne omtalen."
+
+#: includes/Reviews/Images.php:376
+msgid ""
+"Image data found, but the image could not be displayed. It might have been "
+"deleted from the media library."
+msgstr "Fant bildedata, men bildet kunne ikke vises. Det kan ha blitt slettet fra mediebiblioteket."
+
+#. translators: 1: reviewer name. 2: rating, 1-5. 3: opening words of the review.
+#: block/src/index.js:177
+msgid "%1$s · %2$d★ · %3$s"
+msgstr "%1$s · %2$d★ · %3$s"
+
+#: block/src/index.js:178
+msgid "Anonymous"
+msgstr "Anonym"
+
+#: block/src/index.js:187
+msgid "Select a product first"
+msgstr "Velg et produkt først"
+
+#: block/src/index.js:189
+msgid "Loading reviews…"
+msgstr "Henter omtaler …"
+
+#: block/src/index.js:191
+msgid "This product has no approved reviews yet."
+msgstr "Dette produktet har ingen godkjente omtaler ennå."
+
+#: block/src/index.js:210
+msgid "Review source"
+msgstr "Kilde for omtalen"
+
+#: block/src/index.js:213 block/src/index.js:312
+msgid "Product"
+msgstr "Produkt"
+
+#: block/src/index.js:214
+msgid "Type to search all products."
+msgstr "Skriv for å søke i alle produkter."
+
+#: block/src/index.js:233
+msgid ""
+"You need review-moderation permission to pick a review — ask an "
+"administrator."
+msgstr "Du må ha tilgang til å moderere omtaler for å kunne velge en. Spør en administrator."
+
+#: block/src/index.js:243
+msgid "The review list could not be loaded."
+msgstr "Klarte ikke å hente listen over omtaler."
+
+#: block/src/index.js:257
+msgid "Review"
+msgstr "Omtale"
+
+#: block/src/index.js:272
+msgid "Content"
+msgstr "Innhold"
+
+#: block/src/index.js:277
+msgid "Review text"
+msgstr "Omtaletekst"
+
+#: block/src/index.js:281
+msgid "Customer photos"
+msgstr "Kundebilder"
+
+#: block/src/index.js:285
+msgid "Star rating"
+msgstr "Stjernevurdering"
+
+#: block/src/index.js:290
+msgid "Attribution"
+msgstr "Avsender"
+
+#: block/src/index.js:295
+msgid "Reviewer name"
+msgstr "Kundenavn"
+
+#: block/src/index.js:299
+msgid "Avatar"
+msgstr "Avatar"
+
+#: block/src/index.js:303
+msgid "Verified-owner badge"
+msgstr "Merke for verifisert kjøp"
+
+#: block/src/index.js:307
+msgid "Date"
+msgstr "Dato"
+
+#: block/src/index.js:317
+msgid "Product name"
+msgstr "Produktnavn"
+
+#: block/src/index.js:321
+msgid "Product image"
+msgstr "Produktbilde"
+
+#: block/src/index.js:334
+msgid "Curated Review"
+msgstr "Utvalgt omtale"
+
+#: block/src/index.js:335
+msgid "Pick a product, then one of its reviews, in the block settings sidebar."
+msgstr "Velg et produkt, og deretter en av omtalene, i sidepanelet for blokkinnstillinger."
+
+#: block/block.json
+msgctxt "block title"
+msgid "Curated Review"
+msgstr "Utvalgt omtale"
+
+#: block/block.json
+msgctxt "block description"
+msgid ""
+"Place one hand-picked product review anywhere. Toggles decide what renders; "
+"the theme decides how it looks."
+msgstr "Plasser én utvalgt produktomtale hvor som helst. Bryterne bestemmer hva som vises, temaet bestemmer hvordan det ser ut."
+
+#~ msgid "Upload your profile photo (optional, max 1MB, JPG, PNG, GIF)"
+#~ msgstr "Last opp profilbildet ditt (valgfritt, maks 1MB, JPG, PNG, GIF)"
+
+#~ msgid "No avatar uploaded"
+#~ msgstr "Ingen avatar lastet opp"
+
+#~ msgid "View Avatar"
+#~ msgstr "Se avatar"
+
+#~ msgid "Avatar removed successfully"
+#~ msgstr "Avatar fjernet"
+
+#~ msgid "Could not remove avatar"
+#~ msgstr "Kunne ikke fjerne avatar"
+
+#~ msgid "Avatar URL"
+#~ msgstr "Avatar URL"

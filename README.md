@@ -1,205 +1,379 @@
-# WooCommerce Review Images
+# Kaupang Review Images
 
-[![WooCommerce Review Images](https://img.shields.io/badge/WooCommerce-Review%20Images-7f54b3.svg)](https://wordpress.org/plugins/woocommerce-review-images/)
-[![Version 1.2.0](https://img.shields.io/badge/Version-1.2.0-brightgreen.svg)](https://github.com/nytafar/woocommerce-review-images/releases)
-[![WooCommerce 5.0+](https://img.shields.io/badge/WooCommerce-5.0+-a46497.svg)](https://woocommerce.com/)
-[![PHP 7.4+](https://img.shields.io/badge/PHP-7.4+-8892BF.svg)](https://php.net/)
+[![Version 2.0.0](https://img.shields.io/badge/Version-2.0.0-brightgreen.svg)](https://github.com/nytafar/kaupang-review-images/releases)
+[![WooCommerce 9.0+](https://img.shields.io/badge/WooCommerce-9.0+-a46497.svg)](https://woocommerce.com/)
+[![PHP 8.1+](https://img.shields.io/badge/PHP-8.1+-8892BF.svg)](https://php.net/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
-Enhance your WooCommerce product reviews by allowing customers to upload images with their reviews. This plugin provides a seamless way to collect and display user-generated content, helping build trust and engagement on your e-commerce site.
+Customers attach a product photo and a profile picture to their WooCommerce review; both are
+stored as ordinary media-library attachments referenced from comment meta. Conditional Gravatar
+loading keeps default mystery-person avatars off the page. A **Curated Review** block lets an
+editor place one hand-picked review anywhere on the site.
 
-![WooCommerce Review Images](assets/screenshot-1.png)
+Part of the Kaupang suite: `Kaupang\ReviewImages\`, `KAUPANG_REVIEW_IMAGES_*`, Composer-less
+PSR-4, slash-namespaced `kaupang/review-images/*` seams.
 
 ## Features
 
-- **Custom Avatar Uploads**: Allow customers to upload their profile photo/avatar with reviews (takes precedence over Gravatar)
-- **Review Image Uploads**: Allow customers to upload images with product reviews
-- **Admin Interface**: Manage review images and avatars from WordPress admin
-- **Optimized Gravatar Display**: Conditional Gravatar loading for review authors
-- **Mobile-Friendly**: Responsive image upload interface
-- **Configurable Settings**: Image size and quality settings
-- **Multiple Formats**: Support for JPEG, PNG, GIF, and WebP
-- **Secure File Handling**: Secure file upload with validation
-- **GDPR Compliant**: Stores user consent for uploads
+- **Review image uploads** — one photo per review, 2 MB ceiling
+- **Custom avatar uploads** — takes precedence over Gravatar, 1 MB ceiling
+- **Conditional Gravatar loading** — a review author with no real Gravatar and no upload gets
+  *no* `<img>` at all, rather than the default silhouette
+- **Retina avatars** — base size plus a `2x` `srcset`, for both custom uploads and real Gravatars
+- **Curated Review block** — place one specific review anywhere; the theme owns presentation
+- **Admin surface** — an "Image" column on the Comments screen plus review-image and avatar meta
+  boxes on the comment-edit screen
+- **JPEG, PNG, GIF and WebP**, nonce- and MIME-guarded on upload
+- **HPOS-compatible** (declared; the plugin never touches order data)
 
 ## Requirements
 
-- WordPress 5.6 or higher
-- WooCommerce 5.0 or higher
-- PHP 7.4 or higher
+- WordPress 6.7 or higher
+- WooCommerce 9.0 or higher (tested up to 11.0)
+- PHP 8.1 or higher
+
+There are no settings, no options, no admin menu, no REST routes and no cron. Everything is
+configured through the filters below.
 
 ## Installation
 
-1. Upload the `woocommerce-review-images` folder to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. The image upload field will automatically appear in the product review form
+1. Upload the `kaupang-review-images` folder to `/wp-content/plugins/`
+2. Activate through the Plugins menu
+3. The upload fields appear in the product review form automatically
 
-## Configuration
-
-### Image Upload Settings
-
-The plugin uses the following default settings:
-
-- Maximum upload size: 2MB
-- Allowed file types: JPEG, PNG, GIF
-- Image upload is optional
-
-### Gravatar Settings
-
-Control how Gravatars are displayed in reviews:
-
-```php
-// Change Gravatar size (default: 200px)
-add_filter('wcri_gravatar_base_size', function() {
-    return 250; // Set your preferred size in pixels
-});
-
-// Disable Gravatar functionality
-add_filter('wcri_enable_conditional_gravatars', '__return_false');
-```
+`block/build/` is committed, so deploys are copy-only — no `node` on the server. See
+[Building](#building) if you change the editor JS.
 
 ## Usage
 
-### For Customers
+### For customers
 
 1. Write a product review as usual
-2. **Upload Profile Photo** (optional): Choose a file to upload your avatar/profile photo
-3. **Upload Review Image** (optional): Choose a file to upload an image related to the product
-4. Submit your review
-5. Your custom avatar and review image will appear with your review
+2. **Your Photo** (optional) — upload an avatar
+3. **Product Image** (optional) — upload a photo of the product
+4. Submit. Both appear with the review once it is approved.
 
-### For Administrators
+### For administrators
 
-1. Go to **Comments** in WordPress admin
-2. Locate the review with an image or avatar
-3. Both the avatar and review image will be visible in the comment list and edit screen
-4. You can manage or delete images as needed from the media library
+Go to **Comments**. The "Image" column shows the review photo; opening a review shows the
+"Review Image" and "Review Author Avatar" meta boxes. Uploads are ordinary attachments, so they
+are managed and deleted from the Media Library like anything else.
 
-## Available Filters
+### For editors — the Curated Review block
 
-### Avatar Upload Filters
+Editorial, not a feed. An editor picks *one* review and places it: a testimonial on the home
+page, a callout in a blog post, a trust signal on a landing page. The same review can appear in
+three places looking completely different, because the block decides only **which data elements
+are present** and the theme decides how they look.
 
-#### `wcri_enable_avatar_upload`
-Toggle the avatar upload functionality.
+Insert **Curated Review** (Widgets category), pick a product in the sidebar, then one of its
+reviews. On a product page the product is pre-filled — an editor convenience, not a different
+default.
 
-```php
-// Disable avatar upload functionality
-add_filter('wcri_enable_avatar_upload', '__return_false');
+The review picker reads `GET /wc/v3/products/reviews`, whose permission is `moderate_comments`.
+Administrator, Editor and Shop manager pass; Author and Contributor get a 403 and the picker says
+so. The frontend renders for everyone — only *choosing* is gated.
 
-// Or conditionally enable
-add_filter('wcri_enable_avatar_upload', function($enabled) {
-    return is_user_logged_in(); // Only allow logged-in users to upload avatars
-});
+Known cap: the picker requests `per_page=100`, so a product with more than 100 approved reviews
+truncates the list.
+
+## The block
+
+### Identity
+
+| | |
+|---|---|
+| Block name | `kaupang-review-images/curated-review` |
+| Render callback | `Kaupang\ReviewImages\Block\CuratedReview::render()` |
+| Metadata | `block/block.json` |
+| Editor source | `block/src/index.js` → `block/build/` (committed) |
+| Kill switch | `kaupang/review-images/enable_block` |
+
+The PHP render callback is the single source of truth for the markup. The editor previews it
+through `<ServerSideRender />`, so there is no JS-side copy that can drift.
+
+### It ships zero CSS
+
+No `style`, no `editorStyle` in `block.json`; no inline styles; no `style` attributes on anything
+the block authors. The theme owns presentation entirely — `myrvann/scss/plugins/_kaupang-review.scss`
+is where it lands on this site. The one inline style you will see inside the rating is
+WooCommerce's own `width:X%` star encoding from `wc_get_star_rating_html()`, which is data, not
+presentation.
+
+### Attributes
+
+All eleven, with the defaults from `block/block.json`:
+
+| Attribute | Type | Default | | Attribute | Type | Default |
+|---|---|---|---|---|---|---|
+| `reviewId` | number | `0` | | `showAuthor` | boolean | `true` |
+| `productId` | number | `0` | | `showAvatar` | boolean | `true` |
+| `showBody` | boolean | `true` | | `showVerified` | boolean | **`false`** |
+| `showReviewImages` | boolean | **`false`** | | `showDate` | boolean | `true` |
+| `showRating` | boolean | **`false`** | | `showProductName` | boolean | `true` |
+| | | | | `showProductImage` | boolean | **`false`** |
+
+Defaults are uniform — they do not vary by context. The render callback reads them back off the
+block registry, so `block.json` is the only place they are defined.
+
+### Class contract
+
+`kaupang-review__*`, BEM, vendor spelled out. Document order is fixed — body, images, rating,
+attribution, product. Toggles decide *presence*, never position; CSS `order`/grid makes visual
+position free. This is the reading order for screen readers and text extraction.
+
+```html
+<article class="kaupang-review" data-review-id="482" data-rating="5" data-verified="1" data-has-images="1">
+  <blockquote class="kaupang-review__body" cite="https://…/produkt/kakaonibs/">
+    <p>…</p>
+  </blockquote>
+
+  <figure class="kaupang-review__images">
+    <img class="kaupang-review__image" …>
+  </figure>
+
+  <p class="kaupang-review__rating">
+    <span class="star-rating" role="img" aria-label="Rated 5 out of 5">…</span>
+  </p>
+
+  <footer class="kaupang-review__author">
+    <img class="kaupang-review__avatar avatar …" …>
+    <cite class="kaupang-review__author-name">Kari N.</cite>
+    <em class="kaupang-review__verified">(verified owner)</em>
+    <time class="kaupang-review__date" datetime="2026-04-12T09:31:00+02:00">12. april 2026</time>
+  </footer>
+
+  <div class="kaupang-review__product">
+    <a class="kaupang-review__product-link" href="…">
+      <img class="kaupang-review__product-image" …>
+      <span class="kaupang-review__product-name">…</span>
+    </a>
+  </div>
+</article>
 ```
 
-#### `wcri_avatar_upload_field_label_text`
-Customize the avatar upload field label text.
+Notes on what is actually emitted:
+
+- The root `<article>` carries `get_block_wrapper_attributes()`, so editor-set classes (align,
+  spacing, `wp-block-*`) merge with `kaupang-review`.
+- `star-rating` is WooCommerce's own class, around `wc_get_star_rating_html()`. It is
+  deliberately **not** `wc_get_rating_html()` — the theme filters that one to an empty string
+  (`myrvann/inc/woocommerce.php:18`) to kill loop ratings. `role="img"` + `aria-label` sit on the
+  span, as in WooCommerce's own review-rating template; there is no second `aria-label` on the
+  wrapping `<p>` competing with it.
+- The avatar comes back from `get_avatar()`, which runs the full custom-upload → real-Gravatar →
+  nothing chain, so it carries the chain's own classes (`avatar avatar-custom wcri-custom-avatar`
+  or `wcri-gravatar`) in addition to `kaupang-review__avatar`. When the chain returns nothing, no
+  `<img>` is emitted.
+- `kaupang-review__product` and its `<a>` only render when the product still exists.
+- `(verified owner)` and `Rated %s out of 5` use the `woocommerce` text domain on purpose: they
+  are verbatim WooCommerce strings and arrive already translated.
+
+### State attributes
+
+`data-review-id`, `data-rating`, `data-verified`, `data-has-images` render on the root
+**regardless of the corresponding `show*` toggle** — a hidden rating still exposes
+`data-rating`. The theme can hang the cascade on state it cannot see.
+
+`data-verified` and `data-has-images` are `"1"`/`"0"`. `data-rating` is the raw integer, `"0"`
+when the review has no rating.
+
+### Empty state
+
+Missing means any of: `reviewId` 0, comment deleted, unapproved, spam, trashed, or not a review
+on a product.
+
+- **Frontend:** the empty string. An empty wrapper is itself a style decision and this block
+  ships none.
+- **Editor:** a plain `<p class="kaupang-review__notice">` saying why — detected via
+  `REST_REQUEST`, because `ServerSideRender` comes through `/wp/v2/block-renderer/`.
+
+### No structured data
+
+No schema.org microdata, no JSON-LD, deliberately. Designation is carried by HTML semantics
+instead: `<article>` around a `<blockquote cite>`, `<cite>` for the reviewer, `<time datetime>`
+for the date, the rating as real text behind an `aria-label`. The reasoning and its primary
+sources are recorded in `docs/suite-seams/kaupang-review-images.md` — read that before adding
+schema back.
+
+## Filters
+
+Every filter this plugin defines, with the default it actually applies. All are slash-namespaced
+`kaupang/review-images/*`.
+
+| Filter | Args | Default | Applied in |
+|---|---|---|---|
+| `kaupang/review-images/enable_review_images` | `bool $enabled` | `true` | `includes/Plugin.php` |
+| `kaupang/review-images/enable_avatar_upload` | `bool $enabled` | `true` | `includes/Plugin.php`, `includes/Reviews/Images.php` |
+| `kaupang/review-images/enable_avatar_display` | `bool $enabled` | `true` | `includes/Plugin.php` |
+| `kaupang/review-images/enable_conditional_gravatars` | `bool $enabled` | `true` | `includes/Plugin.php`, `includes/Avatars/Display.php`, `includes/Avatars/Gravatar.php` |
+| `kaupang/review-images/enable_block` | `bool $enabled` | `true` | `includes/Block/CuratedReview.php` |
+| `kaupang/review-images/enqueue_styles` | `bool $enabled` | `true` | `includes/Reviews/Images.php` |
+| `kaupang/review-images/upload_field_label` | `string $label`, `WP_Post $product` | `'Product Image'` | `includes/Reviews/Images.php` |
+| `kaupang/review-images/avatar_upload_field_label` | `string $label`, `WP_Post $product` | `'Your Photo'` | `includes/Reviews/Images.php` |
+| `kaupang/review-images/avatar_base_size` | `int $px` | `120` | `includes/Avatars/Display.php`, `includes/Block/CuratedReview.php` |
+| `kaupang/review-images/gravatar_base_size` | `int $px` | `120` | `includes/Avatars/Gravatar.php` |
+| `kaupang/review-images/custom_avatar_html` | `string $html`, `int $commentId`, `int $avatarId`, `int\|string $size` | the built `<img>` | `includes/Avatars/Display.php` |
+
+### When the gates are evaluated
+
+The four `enable_*` module gates in `Plugin::boot()` run at **plugin-load time**, so only an
+mu-plugin or an earlier-loading plugin can flip them — a theme's `functions.php` runs too late.
+That timing is inherited from before the Kaupang conversion, not new.
+
+`enable_block` is different: it is applied inside the `init` callback, so a theme *can* flip it.
+`enable_avatar_upload` (in the form renderer), `enable_conditional_gravatars` (in the two
+`get_avatar` filters) and `enqueue_styles` are all re-evaluated at render time and are themeable
+too.
+
+### Examples
 
 ```php
-add_filter('wcri_avatar_upload_field_label_text', function($default_text, $product) {
-    return __('Upload your photo (optional)', 'your-text-domain');
+// Take the block out of the inserter entirely.
+add_filter('kaupang/review-images/enable_block', '__return_false');
+
+// Serve 96px avatars (and 192px for retina).
+add_filter('kaupang/review-images/avatar_base_size', fn() => 96);
+
+// Same for real Gravatars.
+add_filter('kaupang/review-images/gravatar_base_size', fn() => 96);
+
+// Show default Gravatars again, silhouettes and all.
+add_filter('kaupang/review-images/enable_conditional_gravatars', '__return_false');
+
+// Theme owns the upload-form CSS.
+add_filter('kaupang/review-images/enqueue_styles', '__return_false');
+
+// Product-specific field label.
+add_filter('kaupang/review-images/upload_field_label', function ($label, $product) {
+    return sprintf(__('Upload a photo of your %s', 'my-theme'), get_the_title($product));
 }, 10, 2);
-```
 
-#### `wcri_avatar_base_size`
-Set the base size for custom avatars in pixels.
-
-```php
-// Set base avatar size to 96px (will serve 96px and 192px for retina)
-add_filter('wcri_avatar_base_size', function() {
-    return 96; // Default is 120px
-});
-```
-
-#### `wcri_custom_avatar_html`
-Filter the custom avatar HTML output.
-
-```php
-add_filter('wcri_custom_avatar_html', function($html, $comment_id, $avatar_id, $size) {
-    // Modify avatar HTML as needed
-    return $html;
+// Wrap the custom avatar.
+add_filter('kaupang/review-images/custom_avatar_html', function ($html, $commentId, $avatarId, $size) {
+    return '<span class="my-avatar-ring">' . $html . '</span>';
 }, 10, 4);
 ```
 
-#### `wcri_display_avatar_in_meta`
-Control whether to display avatar in review meta section.
+## PHP API
 
-```php
-// Hide avatar in review meta
-add_filter('wcri_display_avatar_in_meta', '__return_false');
+Public statics worth knowing about; everything else is internal.
+
+| Call | Returns |
+|---|---|
+| `Reviews\Images::getImageIds(int $commentId)` | `int[]` — attachment ids of the review's images. Zero or one element today; an array from day one so multi-image upload later is a storage change only. |
+| `Avatars\Upload::getCommentAvatarId(int $commentId)` | `int\|false` |
+| `Avatars\Upload::hasCustomAvatar(int\|WP_Comment $comment)` | `bool` |
+| `Avatars\Upload::getCommentAvatarUrl(int $commentId, $size)` | `string\|false` |
+| `Avatars\Display::getCustomAvatarHtml(int $commentId, $size, string $alt)` | `string` — the custom upload only, *not* the Gravatar fallback. Use `get_avatar()` if you want the whole chain. |
+| `Avatars\Display::getAvatarUrl($comment, $size)` | `string\|false` — custom upload, else a Gravatar URL. |
+| `Avatars\Gravatar::hasGravatar(string $email)` | `bool` — 24h-transient-cached `HEAD` probe. |
+| `Support\Comments::asProductReview(WP_Comment $comment)` | `?WP_Comment` — the "is this a product review" gate. |
+
+## Data storage
+
+No custom tables. Comment meta plus ordinary attachments plus one transient.
+
+| Key | Holds |
+|---|---|
+| `_review_image_id` (comment meta) | attachment id of the review image |
+| `_review_author_avatar_id` (comment meta) | attachment id of the custom avatar |
+| `kaupang_review_images_has_gravatar_{md5(email)}` (transient, 24h) | `'yes'`/`'no'` |
+
+Uploads are parented to the product via `media_handle_upload()`; avatar attachments also get
+`_wp_attachment_image_alt`. Meta is written in `comment_post` **only if the comment is approved**.
+
+## Building
+
+The editor JS is the only thing that needs a build. `block/build/` is **committed** so deploys
+stay copy-only.
+
+```bash
+npm ci
+npm run build      # or: npm start  for a watch build
 ```
 
-### Review Image Filters
+Known quirk on this server: `npm` can leave the symlinks in `node_modules/.bin` without the
+executable bit, and the first `npm run build` then dies with `wp-scripts: Permission denied`.
+Fix after a fresh install:
 
-#### 1. `wcri_enable_review_images`
-Toggle the entire review images functionality.
-
-```php
-// Disable review images functionality
-add_filter('wcri_enable_review_images', '__return_false');
-
-// Or conditionally enable
-add_filter('wcri_enable_review_images', function($enabled) {
-    return is_product() && !is_user_logged_in(); // Only for guests on product pages
-});
+```bash
+find node_modules/.bin -maxdepth 1 -type l -exec chmod +x {} \;
 ```
 
-#### 2. `wcri_upload_field_label_text`
-Customize the upload field label text.
+`node_modules/` is gitignored. `languages/*.l10n.php` files are committed; WP 6.5+
+prefers them over the `.mo` and an untracked stale cache silently shadows updated translations.
 
-```php
-add_filter('wcri_upload_field_label_text', function($default_text, $product) {
-    // $product is the current product post object
-    return sprintf(
-        __('Upload an image of your %s (max 5MB, JPG, PNG, GIF)', 'woocommerce-review-images'),
-        $product->get_name()
-    );
-}, 10, 2);
+## Verification
+
+Half this plugin had nothing to render against — staging carries 143 reviews and zero
+`_review_image_id`, zero `_review_author_avatar_id` — so there are two PHP-native scripts in
+`bin/`. Run them as the site user, never as root.
+
+```bash
+# Seed one approved review with a rating, the verified flag, a review image and a custom avatar.
+# Idempotent; `clean` removes the review and both attachments again.
+sudo -u myrvann wp --path=/var/www/staging.myrvann.no/htdocs \
+  eval-file wp-content/plugins/kaupang-review-images/bin/seed-review-fixtures.php
+sudo -u myrvann wp --path=/var/www/staging.myrvann.no/htdocs \
+  eval-file wp-content/plugins/kaupang-review-images/bin/seed-review-fixtures.php clean
+
+# The runnable check: seeds its own fixture, asserts 23 things, trashes it in a finally
+# block, and exits non-zero on failure.
+sudo -u myrvann wp --path=/var/www/staging.myrvann.no/htdocs \
+  eval-file wp-content/plugins/kaupang-review-images/bin/check-review-block.php
 ```
 
-#### 3. `wcri_enable_conditional_gravatars`
-Optimize Gravatar loading by only loading Gravatars for users who have custom avatars.
+No PHPUnit, no fixtures framework — the smallest thing that goes red if the block, the
+`getImageIds()` accessor or the avatar chain breaks. The Gravatar half is made deterministic by
+pre-seeding the transient `Gravatar::hasGravatar()` caches into, so it needs no network.
 
-```php
-// Disable conditional Gravatar loading (show all Gravatars, even default ones)
-add_filter('wcri_enable_conditional_gravatars', '__return_false');
-
-// Or conditionally enable based on user role
-add_filter('wcri_enable_conditional_gravatars', function() {
-    return current_user_can('edit_products'); // Only optimize for non-editors
-});
-```
-
-#### 4. `wcri_gravatar_base_size`
-Set the base width for Gravatars in pixels. The plugin will automatically generate both standard and retina (2x) versions.
-
-```php
-// Set base Gravatar size to 96px (will serve 96px and 192px for retina)
-add_filter('wcri_gravatar_base_size', function() {
-    return 96; // Default is 200px (serves 200px and 400px)
-});
-```
-
-#### 5. Review Meta Customization Hooks
-The following hooks allow for granular customization of the review meta output:
-
-| Hook Name | Description |
-|-----------|-------------|
-| `woocommerce_review_meta_start` | Fires at the very beginning of the meta block. Useful for wrapping markup or adding icons. |
-| `woocommerce_review_meta_author` | Fires before or around the author name. Useful if you want to prepend or wrap the name. |
-| `woocommerce_review_meta_after_author` | Fires immediately after the author name, before the verified badge. Great for adding avatars or separators. |
-| `woocommerce_review_meta_after_verified` | Fires after the verified badge and before the date. |
-| `woocommerce_review_meta_end` | Fires at the very end of the meta block, just before closing `</p>`. Useful for appending icons or badges. |
-
-Example usage:
-```php
-// Add a custom icon before the author name
-add_action('woocommerce_review_meta_author', function() {
-    echo '<span class="review-author-icon">👤</span> ';
-});
-```
+Neither script declares `strict_types`: `wp eval-file` evals the source, and a `declare` must be
+the first statement of a script. Both say so in a comment — do not "fix" it back.
 
 ## Changelog
+
+### 2.0.0 - 2026-09-01
+
+Two breaking changes — the rename and the hook removal — hence the major bump.
+
+- **BREAKING**: renamed `woocommerce-review-images` → `kaupang-review-images`. Folder, entry
+  file, text domain, GitHub repo. Every `wcri_*` filter is now `kaupang/review-images/*`.
+- **BREAKING**: the five `woocommerce_review_meta_{start,author,after_author,after_verified,end}`
+  actions **no longer exist**. `custom-review-meta.php` replaced WooCommerce's
+  `woocommerce_review_display_meta` renderer wholesale just to emit them, and the only consumer
+  anywhere was the myrvann theme moving a gravatar. WooCommerce's own renderer runs again and the
+  avatar returns to `woocommerce_review_before`. They are not renamed, deprecated or shimmed:
+  no third party fires or consumes them, and impersonating a core hook only misleads whoever
+  greps WooCommerce for it. `kaupang/review-images/display_avatar_in_meta` and
+  `WC_Review_Images_Avatar_Display::display_avatar_in_review_meta()` go with them.
+- **NEW**: the **Curated Review** block (`kaupang-review-images/curated-review`) — one
+  hand-picked review, nine toggles, the `kaupang-review__*` class contract, zero CSS.
+  Kill switch: `kaupang/review-images/enable_block`.
+- **FIXED**: a review whose author has **no email address** rendered the default mystery-person.
+  The conditional-Gravatar branch only suppressed when an address was present and had no
+  Gravatar — but no address means no Gravatar can exist, so that was the case most in need of
+  suppressing.
+- **FIXED**: the avatar gate asked the wrong question. Both `get_avatar` filters early-returned
+  unless `is_product()`, so the custom-upload → real-Gravatar → nothing chain never ran off a
+  product page — exactly where the default silhouette this plugin exists to suppress would show.
+  The gate now tests whether the *comment* is a product review (`Support\Comments`). A latent bug
+  went with it: a numeric `$id_or_email` in `get_avatar()` is a *user* id, and the old code read
+  it as a comment id.
+- **CHANGED**: Composer-less PSR-4 (`Kaupang\ReviewImages\` → `includes/`), `strict_types=1`,
+  `KAUPANG_REVIEW_IMAGES_{VERSION,FILE,DIR,URL}`, boot wiring in `includes/Plugin.php`.
+- **CHANGED**: requirements raised to PHP 8.1 / WordPress 6.7 / WooCommerce 9.0.
+- **NEW**: `Reviews\Images::getImageIds()` accessor; every `_review_image_id` call site routes
+  through it and loop, so multi-image support is a storage change away.
+- **NEW**: `Support\Media::ingest()` — one shared size → MIME → `media_handle_upload()` path
+  replacing the two near-identical upload handlers, and one copy of the MIME allowlist.
+- **CHANGED**: asset versions come from `filemtime()` instead of a frozen `'1.2.1'` literal that
+  had already drifted from the header.
+- **REMOVED**: the ~30-line bespoke `.mo` candidate-probing loader, the dead
+  `display_avatar_upload_field()`, and the `WP_DEBUG` footer probe.
+- **DOCS**: two defaults were documented wrongly before this release —
+  `display_avatar_in_meta` was documented `true` but was always `false` (moot: it is deleted),
+  and `gravatar_base_size` was documented `200` but has always been `120`.
 
 ### 1.2.0 - 2025-10-27
 - **NEW**: Added custom avatar upload functionality for review authors
@@ -250,18 +424,24 @@ add_action('woocommerce_review_meta_author', function() {
 - Basic image upload functionality
 - Admin interface for managing review images
 
-## Upgrade Notice
+> Changelog entries below 2.0.0 are history. The hooks and `wcri_*` filter names they mention no
+> longer exist — the current API is the filter table above.
 
-### 1.0.2
-This update includes important security improvements and new features. Please test in a staging environment before updating production.
+## Upgrade notice
+
+### 2.0.0
+The plugin folder, text domain and every filter name changed, and the five
+`woocommerce_review_meta_*` actions were deleted. If anything in your theme hooks them — the
+myrvann child theme did — that code must move to `woocommerce_review_before` in the same
+deploy window, or the byline avatar silently disappears.
 
 ## Support
 
-For support, please [open an issue](https://github.com/nytafar/woocommerce-review-images/issues) on GitHub.
+For support, please [open an issue](https://github.com/nytafar/kaupang-review-images/issues) on GitHub.
 
 ## License
 
-GPL-2.0+
+GPL-2.0-or-later
 
 ## Credits
 
