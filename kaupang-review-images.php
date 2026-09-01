@@ -3,7 +3,7 @@
  * Plugin Name: Kaupang Review Images
  * Plugin URI:  https://github.com/nytafar/kaupang-review-images
  * Description: Review image and avatar uploads for WooCommerce product reviews — customers attach a product photo and a profile picture to their review, stored as ordinary media attachments; conditional Gravatar loading keeps default avatars off the page. Part of the Kaupang suite.
- * Version:     1.2.1
+ * Version:     2.0.0
  * Author:      Lasse Jellum
  * Author URI:  https://jellum.net
  * Text Domain: kaupang-review-images
@@ -22,7 +22,7 @@ declare(strict_types=1);
 
 defined('ABSPATH') || exit;
 
-define('KAUPANG_REVIEW_IMAGES_VERSION', '1.2.1');
+define('KAUPANG_REVIEW_IMAGES_VERSION', '2.0.0');
 define('KAUPANG_REVIEW_IMAGES_FILE', __FILE__);
 define('KAUPANG_REVIEW_IMAGES_DIR', plugin_dir_path(__FILE__));
 define('KAUPANG_REVIEW_IMAGES_URL', plugin_dir_url(__FILE__));
