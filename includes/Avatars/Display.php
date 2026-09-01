@@ -39,7 +39,6 @@ final class Display
 
         // Priority 5 — must run before Gravatar's resize filter at 10.
         add_filter('get_avatar', [$this, 'displayCustomAvatar'], 5, 6);
-        add_action('woocommerce_review_meta_after_author', [$this, 'displayAvatarInReviewMeta'], 10, 1);
     }
 
     /**
@@ -123,22 +122,6 @@ final class Display
          * @param int|string $size  Requested size.
          */
         return apply_filters('kaupang/review-images/custom_avatar_html', $html, $commentId, $avatarId, $size);
-    }
-
-    public function displayAvatarInReviewMeta(\WP_Comment $comment): void
-    {
-        if (!isset($comment->comment_ID)) {
-            return;
-        }
-
-        if (!apply_filters('kaupang/review-images/display_avatar_in_meta', false, $comment)) {
-            return;
-        }
-
-        $html = get_avatar($comment, 48);
-        if (!empty($html)) {
-            echo '<span class="wcri-review-avatar">' . $html . '</span>';
-        }
     }
 
     /**
