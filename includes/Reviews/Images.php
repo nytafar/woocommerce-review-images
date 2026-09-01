@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Kaupang\ReviewImages\Reviews;
 
+use Kaupang\ReviewImages\Support\Media;
+
 defined('ABSPATH') || exit;
 
 final class Images
@@ -16,13 +18,6 @@ final class Images
     public const META_KEY_IMAGE_ID = '_review_image_id';
 
     public const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
-
-    public const ALLOWED_MIME_TYPES = [
-        'jpg|jpeg|jpe' => 'image/jpeg',
-        'gif'          => 'image/gif',
-        'png'          => 'image/png',
-        'webp'         => 'image/webp',
-    ];
 
     private static ?self $instance = null;
 
@@ -77,7 +72,7 @@ final class Images
                 'kaupang-review-images',
                 KAUPANG_REVIEW_IMAGES_URL . 'assets/css/kaupang-review-images.css',
                 [],
-                KAUPANG_REVIEW_IMAGES_VERSION
+                Media::assetVersion('assets/css/kaupang-review-images.css')
             );
         }
 
@@ -85,7 +80,7 @@ final class Images
             'kaupang-review-images-toggle',
             KAUPANG_REVIEW_IMAGES_URL . 'assets/js/review-form-toggle.js',
             [],
-            KAUPANG_REVIEW_IMAGES_VERSION,
+            Media::assetVersion('assets/js/review-form-toggle.js'),
             true
         );
     }
@@ -242,40 +237,21 @@ final class Images
             return $commentdata;
         }
 
-        if (
-            !isset($_FILES['wcri_review_image_upload'])
-            || empty($_FILES['wcri_review_image_upload']['name'])
-            || $_FILES['wcri_review_image_upload']['error'] !== UPLOAD_ERR_OK
-        ) {
-            return $commentdata;
-        }
-
-        $file = $_FILES['wcri_review_image_upload'];
-
-        if ($file['size'] > self::MAX_FILE_SIZE_BYTES) {
-            error_log('KaupangReviewImages: uploaded file exceeds max size limit. File: ' . sanitize_file_name($file['name']));
-
-            return $commentdata;
-        }
-
-        $fileType = wp_check_filetype($file['name'], self::ALLOWED_MIME_TYPES);
-        if (!$fileType['ext'] || !$fileType['type']) {
-            error_log('KaupangReviewImages: uploaded file type is not allowed. File: ' . sanitize_file_name($file['name']) . ' Detected type: ' . sanitize_mime_type($file['type']));
-
-            return $commentdata;
-        }
-
-        require_once ABSPATH . 'wp-admin/includes/image.php';
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/media.php';
-
-        $attachmentId = media_handle_upload('wcri_review_image_upload', absint($_POST['comment_post_ID']));
+        $attachmentId = Media::ingest(
+            'wcri_review_image_upload',
+            absint($_POST['comment_post_ID']),
+            self::MAX_FILE_SIZE_BYTES
+        );
 
         if (is_wp_error($attachmentId)) {
-            error_log('KaupangReviewImages: media_handle_upload failed. Message: ' . $attachmentId->get_error_message() . ' File: ' . sanitize_file_name($file['name']));
-        } else {
-            self::$uploadedImageAttachmentId = $attachmentId;
+            if ($attachmentId->get_error_code() !== 'kaupang_review_images_no_file') {
+                error_log('KaupangReviewImages: ' . $attachmentId->get_error_message());
+            }
+
+            return $commentdata;
         }
+
+        self::$uploadedImageAttachmentId = $attachmentId;
 
         return $commentdata;
     }

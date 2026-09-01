@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace Kaupang\ReviewImages\Avatars;
 
+use Kaupang\ReviewImages\Support\Media;
+
 defined('ABSPATH') || exit;
 
 final class Upload
@@ -18,13 +20,6 @@ final class Upload
     public const META_KEY_AVATAR_ID = '_review_author_avatar_id';
 
     public const MAX_AVATAR_SIZE_BYTES = 1 * 1024 * 1024; // 1MB
-
-    public const ALLOWED_AVATAR_MIME_TYPES = [
-        'jpg|jpeg|jpe' => 'image/jpeg',
-        'gif'          => 'image/gif',
-        'png'          => 'image/png',
-        'webp'         => 'image/webp',
-    ];
 
     private static ?self $instance = null;
 
@@ -77,37 +72,16 @@ final class Upload
             return $commentdata;
         }
 
-        if (
-            !isset($_FILES['wcri_avatar_upload'])
-            || empty($_FILES['wcri_avatar_upload']['name'])
-            || $_FILES['wcri_avatar_upload']['error'] !== UPLOAD_ERR_OK
-        ) {
-            return $commentdata;
-        }
-
-        $file = $_FILES['wcri_avatar_upload'];
-
-        if ($file['size'] > self::MAX_AVATAR_SIZE_BYTES) {
-            error_log('KaupangReviewImages avatar: uploaded file exceeds max size limit. File: ' . sanitize_file_name($file['name']));
-
-            return $commentdata;
-        }
-
-        $fileType = wp_check_filetype($file['name'], self::ALLOWED_AVATAR_MIME_TYPES);
-        if (!$fileType['ext'] || !$fileType['type']) {
-            error_log('KaupangReviewImages avatar: uploaded file type is not allowed. File: ' . sanitize_file_name($file['name']));
-
-            return $commentdata;
-        }
-
-        require_once ABSPATH . 'wp-admin/includes/image.php';
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/media.php';
-
-        $attachmentId = media_handle_upload('wcri_avatar_upload', absint($_POST['comment_post_ID']));
+        $attachmentId = Media::ingest(
+            'wcri_avatar_upload',
+            absint($_POST['comment_post_ID']),
+            self::MAX_AVATAR_SIZE_BYTES
+        );
 
         if (is_wp_error($attachmentId)) {
-            error_log('KaupangReviewImages avatar: media_handle_upload failed. Message: ' . $attachmentId->get_error_message());
+            if ($attachmentId->get_error_code() !== 'kaupang_review_images_no_file') {
+                error_log('KaupangReviewImages avatar: ' . $attachmentId->get_error_message());
+            }
 
             return $commentdata;
         }

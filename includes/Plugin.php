@@ -48,31 +48,5 @@ final class Plugin
             false,
             dirname(plugin_basename(KAUPANG_REVIEW_IMAGES_FILE)) . '/languages'
         );
-
-        // Fallback: explicitly load from bundled languages if not loaded yet.
-        if (is_textdomain_loaded('kaupang-review-images')) {
-            return;
-        }
-
-        $dir    = KAUPANG_REVIEW_IMAGES_DIR . 'languages/';
-        $locale = function_exists('determine_locale') ? determine_locale() : get_locale();
-
-        $candidates = ['kaupang-review-images-' . $locale . '.mo'];
-
-        // Also try common Norwegian variants.
-        foreach (['nb_NO', 'nb', 'no_NO', 'no'] as $variant) {
-            if ($variant !== $locale) {
-                $candidates[] = 'kaupang-review-images-' . $variant . '.mo';
-            }
-        }
-
-        foreach ($candidates as $file) {
-            if (file_exists($dir . $file)) {
-                load_textdomain('kaupang-review-images', $dir . $file);
-                if (is_textdomain_loaded('kaupang-review-images')) {
-                    break;
-                }
-            }
-        }
     }
 }
