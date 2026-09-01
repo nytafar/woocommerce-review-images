@@ -2,5 +2,7 @@
 .windsurf*.code-workspace
 node_modules/
 
-# performant-translations regenerates this cache from the .mo
-languages/*.l10n.php
+# languages/*.l10n.php IS committed. WordPress 6.5+ and performant-translations
+# prefer it over the .mo, so an untracked one regenerated from an older .mo
+# silently shadows fresh translations. Ship it in lockstep instead:
+#   msgfmt -o X.mo X.po && wp i18n make-php languages

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-01T16:59:17+00:00\n"
+"POT-Creation-Date: 2026-09-01T17:04:58+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: kaupang-review-images\n"
@@ -62,11 +62,11 @@ msgstr ""
 msgid "Avatar data found, but the image could not be displayed. It might have been deleted from the media library."
 msgstr ""
 
-#: includes/Block/CuratedReview.php:250
+#: includes/Block/CuratedReview.php:254
 msgid "Pick a product and a review in the block settings."
 msgstr ""
 
-#: includes/Block/CuratedReview.php:251
+#: includes/Block/CuratedReview.php:255
 msgid "That review is not available any more — it may have been deleted, unapproved, or marked as spam."
 msgstr ""
 
@@ -143,101 +143,105 @@ msgid "Image data found, but the image could not be displayed. It might have bee
 msgstr ""
 
 #. translators: 1: reviewer name. 2: rating, 1-5. 3: opening words of the review.
-#: block/src/index.js:177
+#: block/src/index.js:182
 #, js-format
 msgid "%1$s · %2$d★ · %3$s"
 msgstr ""
 
-#: block/src/index.js:178
+#: block/src/index.js:183
 msgid "Anonymous"
 msgstr ""
 
-#: block/src/index.js:187
+#: block/src/index.js:192
 msgid "Select a product first"
 msgstr ""
 
-#: block/src/index.js:189
+#: block/src/index.js:194
 msgid "Loading reviews…"
 msgstr ""
 
-#: block/src/index.js:191
+#: block/src/index.js:196
 msgid "This product has no approved reviews yet."
 msgstr ""
 
-#: block/src/index.js:210
+#: block/src/index.js:215
 msgid "Review source"
 msgstr ""
 
-#: block/src/index.js:213
-#: block/src/index.js:312
+#: block/src/index.js:218
+#: block/src/index.js:334
 msgid "Product"
 msgstr ""
 
-#: block/src/index.js:214
+#: block/src/index.js:219
 msgid "Type to search all products."
 msgstr ""
 
-#: block/src/index.js:233
+#: block/src/index.js:246
+msgid "Your session has expired — save your work, reload the editor, and sign in again."
+msgstr ""
+
+#: block/src/index.js:255
 msgid "You need review-moderation permission to pick a review — ask an administrator."
 msgstr ""
 
-#: block/src/index.js:243
+#: block/src/index.js:265
 msgid "The review list could not be loaded."
 msgstr ""
 
-#: block/src/index.js:257
+#: block/src/index.js:279
 msgid "Review"
 msgstr ""
 
-#: block/src/index.js:272
+#: block/src/index.js:294
 msgid "Content"
 msgstr ""
 
-#: block/src/index.js:277
+#: block/src/index.js:299
 msgid "Review text"
 msgstr ""
 
-#: block/src/index.js:281
+#: block/src/index.js:303
 msgid "Customer photos"
 msgstr ""
 
-#: block/src/index.js:285
+#: block/src/index.js:307
 msgid "Star rating"
 msgstr ""
 
-#: block/src/index.js:290
+#: block/src/index.js:312
 msgid "Attribution"
 msgstr ""
 
-#: block/src/index.js:295
+#: block/src/index.js:317
 msgid "Reviewer name"
 msgstr ""
 
-#: block/src/index.js:299
+#: block/src/index.js:321
 msgid "Avatar"
 msgstr ""
 
-#: block/src/index.js:303
+#: block/src/index.js:325
 msgid "Verified-owner badge"
 msgstr ""
 
-#: block/src/index.js:307
+#: block/src/index.js:329
 msgid "Date"
 msgstr ""
 
-#: block/src/index.js:317
+#: block/src/index.js:339
 msgid "Product name"
 msgstr ""
 
-#: block/src/index.js:321
+#: block/src/index.js:343
 msgid "Product image"
 msgstr ""
 
-#: block/src/index.js:334
+#: block/src/index.js:356
 msgid "Curated Review"
 msgstr ""
 
-#: block/src/index.js:335
+#: block/src/index.js:357
 msgid "Pick a product, then one of its reviews, in the block settings sidebar."
 msgstr ""
 
