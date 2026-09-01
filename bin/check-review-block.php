@@ -122,11 +122,17 @@ try {
     kri_gravatar_cache(KRI_FIXTURE_EMAIL, true);
     $html = CuratedReview::render(kri_all_on($id));
 
-    kri_check('renders the root class', strpos($html, 'class="kaupang-review') !== false);
-    kri_check('root carries data-review-id', strpos($html, 'data-review-id="' . $id . '"') !== false);
-    kri_check('root carries data-rating', strpos($html, 'data-rating="5"') !== false);
-    kri_check('root carries data-verified', strpos($html, 'data-verified="1"') !== false);
-    kri_check('root carries data-has-images', strpos($html, 'data-has-images="1"') !== false);
+    // Assert against the OPENING <article> TAG, not the whole document: a
+    // substring search for class="kaupang-review passes on any child element,
+    // and state attributes would pass wherever they sat.
+    preg_match('#^<article\b[^>]*>#', $html, $rootMatch);
+    $root = $rootMatch[0] ?? '';
+
+    kri_check('root element is <article> with the block class', (bool) preg_match('#\bclass="[^"]*\bkaupang-review\b#', $root), $root);
+    kri_check('root carries data-review-id', strpos($root, 'data-review-id="' . $id . '"') !== false, $root);
+    kri_check('root carries data-rating', strpos($root, 'data-rating="5"') !== false, $root);
+    kri_check('root carries data-verified', strpos($root, 'data-verified="1"') !== false, $root);
+    kri_check('root carries data-has-images', strpos($root, 'data-has-images="1"') !== false, $root);
     kri_check('review image renders', strpos($html, 'kaupang-review__image') !== false);
     kri_check('rating renders WooCommerce star markup', strpos($html, 'class="star-rating"') !== false);
 
@@ -136,10 +142,18 @@ try {
     foreach (['kaupang-review__body', 'kaupang-review__images', 'kaupang-review__rating', 'kaupang-review__author', 'kaupang-review__product'] as $class) {
         $order[$class] = strpos($html, $class);
     }
+    // strpos() returns false for an absent element, and false sorts before every
+    // integer -- so a missing section used to make this assertion vacuously
+    // true. Every section must be present AND in order.
+    $missing   = array_keys($order, false, true);
     $positions = array_values($order);
     $sorted    = $positions;
     sort($sorted);
-    kri_check('document order is body, images, rating, author, product', $positions === $sorted, wp_json_encode($order));
+    kri_check(
+        'document order is body, images, rating, author, product',
+        !$missing && $positions === $sorted,
+        $missing ? 'missing: ' . implode(', ', $missing) : wp_json_encode($order)
+    );
 
     // --- render: empty states ----------------------------------------------
     kri_check('deleted id renders empty on the frontend', CuratedReview::render(['reviewId' => 999999999]) === '');
@@ -159,7 +173,8 @@ try {
 
     // --- render: all toggles off -------------------------------------------
     $off = CuratedReview::render(kri_all_off($id));
-    kri_check('all toggles off keeps the state attributes', strpos($off, 'data-rating="5"') !== false);
+    preg_match('#^<article\b[^>]*>#', $off, $offRoot);
+    kri_check('all toggles off keeps the state attributes', strpos($offRoot[0] ?? '', 'data-rating="5"') !== false, $off);
     kri_check(
         'all toggles off emits no children',
         (bool) preg_match('#^<article [^>]*></article>$#', trim($off)),

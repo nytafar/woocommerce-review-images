@@ -54,7 +54,13 @@ final class Gravatar
         }
 
         $hash     = md5(strtolower(trim($email)));
-        $response = wp_remote_head('https://www.gravatar.com/avatar/' . $hash . '?d=404');
+        // ponytail: 2s ceiling. This is a synchronous remote call on the first
+        // render for each reviewer address, and the block can put several on
+        // one page. Move it off the request entirely if that ever bites.
+        $response = wp_remote_head(
+            'https://www.gravatar.com/avatar/' . $hash . '?d=404',
+            ['timeout' => 2]
+        );
         $hasReal  = !is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200;
 
         set_transient($cacheKey, $hasReal ? 'yes' : 'no', DAY_IN_SECONDS);

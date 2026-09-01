@@ -242,7 +242,11 @@ final class CuratedReview
      */
     private static function emptyState(int $reviewId): string
     {
-        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+        // REST_REQUEST alone is not "the editor". A public
+        // GET /wp-json/wp/v2/pages/{id} renders this block into
+        // content.rendered too, so the notice would leak to every headless
+        // consumer. Only someone who could act on it should ever see it.
+        if (!defined('REST_REQUEST') || !REST_REQUEST || !current_user_can('edit_posts')) {
             return '';
         }
 
@@ -261,13 +265,22 @@ final class CuratedReview
     private static function defaults(): array
     {
         $type = \WP_Block_Type_Registry::get_instance()->get_registered(self::BLOCK_NAME);
-        if (!$type || !is_array($type->attributes)) {
-            return [];
+
+        if ($type && is_array($type->attributes)) {
+            $attributes = $type->attributes;
+        } else {
+            // Called before init, or with the block gated off. Read the same
+            // block.json the registry would have: returning [] here silently
+            // treated every show* as false and rendered a bare <article>.
+            $metadata   = wp_json_file_decode(KAUPANG_REVIEW_IMAGES_DIR . 'block/block.json', ['associative' => true]);
+            $attributes = is_array($metadata) && isset($metadata['attributes']) && is_array($metadata['attributes'])
+                ? $metadata['attributes']
+                : [];
         }
 
         $defaults = [];
-        foreach ($type->attributes as $name => $schema) {
-            if (array_key_exists('default', $schema)) {
+        foreach ($attributes as $name => $schema) {
+            if (is_array($schema) && array_key_exists('default', $schema)) {
                 $defaults[$name] = $schema['default'];
             }
         }

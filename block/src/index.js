@@ -147,7 +147,12 @@ function Edit( { attributes, setAttributes } ) {
 					// keeps the three apart.
 					const status = error?.data?.status;
 
-					if ( status === 403 || status === 401 ) {
+					if ( status === 401 ) {
+						// Not a capability problem: the cookie lapsed. Saying
+						// "ask an administrator" to an administrator whose own
+						// session expired sends them to the wrong place.
+						setReviewsState( 'expired' );
+					} else if ( status === 403 ) {
 						setReviewsState( 'forbidden' );
 					} else {
 						setReviewsError( error?.message || '' );
@@ -218,15 +223,32 @@ function Edit( { attributes, setAttributes } ) {
 						value={ productId ? String( productId ) : null }
 						options={ productOptions }
 						onFilterValueChange={ setProductSearch }
-						onChange={ ( next ) =>
+						onChange={ ( next ) => {
+							const picked = Number( next ) || 0;
+
+							// Only a genuine change invalidates the review.
+							// Re-picking the product already selected used to
+							// throw the saved review away.
+							if ( picked === productId ) {
+								return;
+							}
+
 							setAttributes( {
-								productId: Number( next ) || 0,
-								// A review belongs to one product, so changing
-								// the product invalidates the pick.
+								productId: picked,
+								// A review belongs to one product.
 								reviewId: 0,
-							} )
-						}
+							} );
+						} }
 					/>
+
+					{ reviewsState === 'expired' && (
+						<Notice status="warning" isDismissible={ false }>
+							{ __(
+								'Your session has expired — save your work, reload the editor, and sign in again.',
+								'kaupang-review-images'
+							) }
+						</Notice>
+					) }
 
 					{ reviewsState === 'forbidden' && (
 						<Notice status="warning" isDismissible={ false }>
